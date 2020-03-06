@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
+
 using RvtDB = Autodesk.Revit.DB;
 
 namespace FacadeHelper
@@ -15,15 +16,19 @@ namespace FacadeHelper
     {
         private double _inf_Width_Metric;
         private double _inf_Height_Metric;
+
         //subs
         private List<ScheduleElementInfo> _inf_ScheduleElements;
+
         private List<DeepElementInfo> _inf_DeepElements;
         private List<GeneralElementInfo> _inf_GeneralElements;
 
         public double INF_Width_Metric { get { return _inf_Width_Metric; } set { _inf_Width_Metric = value; OnPropertyChanged(nameof(INF_Width_Metric)); } }
         public double INF_Height_Metric { get { return _inf_Height_Metric; } set { _inf_Height_Metric = value; OnPropertyChanged(nameof(INF_Height_Metric)); } }
+
         //subs
         public List<ScheduleElementInfo> INF_ScheduleElements { get { return _inf_ScheduleElements; } set { _inf_ScheduleElements = value; OnPropertyChanged(nameof(INF_ScheduleElements)); } }
+
         public List<DeepElementInfo> INF_DeepElements { get { return _inf_DeepElements; } set { _inf_DeepElements = value; OnPropertyChanged(nameof(INF_DeepElements)); } }
         public List<GeneralElementInfo> INF_GeneralElements { get { return _inf_GeneralElements; } set { _inf_GeneralElements = value; OnPropertyChanged(nameof(INF_GeneralElements)); } }
 
@@ -36,21 +41,45 @@ namespace FacadeHelper
             INF_DeepElements = new List<DeepElementInfo>();
             INF_GeneralElements = new List<GeneralElementInfo>();
         }
+
         public CurtainPanelInfo(Element p, bool ispanel) : this()
         {
             #region CurtainPanelInfo 初始化
+
             INF_ElementId = p.Id.IntegerValue;
             INF_Name = p.Name;
             INF_ErrorInfo = $"{p.Id}";
             Parameter _param;
-            if ((_param = p.get_Parameter("构件分项")).HasValue) INF_Type = _param.AsInteger();
+            if ((_param = p.LookupParameter/*get_Parameter*/("构件分项")).HasValue)
+            {
+                INF_Type = _param.AsInteger();
+            }
             else
             {
-                if (INF_Name.Contains("石材")) INF_Type = 51;
-                if (INF_Name.Contains("玻璃")) INF_Type = 52;
-                if (INF_Name.Contains("铝板")) INF_Type = 53;
-                if (INF_Name.Contains("百页")) INF_Type = 54;
-                if (INF_Name.Contains("立柱")) INF_Type = 61;
+                if (INF_Name.Contains("石材"))
+                {
+                    INF_Type = 51;
+                }
+
+                if (INF_Name.Contains("玻璃"))
+                {
+                    INF_Type = 52;
+                }
+
+                if (INF_Name.Contains("铝板"))
+                {
+                    INF_Type = 53;
+                }
+
+                if (INF_Name.Contains("百页"))
+                {
+                    INF_Type = 54;
+                }
+
+                if (INF_Name.Contains("立柱"))
+                {
+                    INF_Type = 61;
+                }
             }
 
             XYZ _xyzOrigin = new XYZ();
@@ -73,8 +102,9 @@ namespace FacadeHelper
             INF_OriginY_Metric = Unit.CovertFromAPI(DisplayUnitType.DUT_MILLIMETERS, _xyzOrigin.Y);
             INF_OriginZ_Metric = Unit.CovertFromAPI(DisplayUnitType.DUT_MILLIMETERS, _xyzOrigin.Z);
 
-            #endregion
+            #endregion CurtainPanelInfo 初始化
         }
+
         public CurtainPanelInfo(Element p, string zonecode, bool ispanel) : this(p, ispanel)
         {
             if (Regex.IsMatch(zonecode, @"Z-00-\d{2}-[a-z|A-Z]{2}-\d{2}"))
@@ -91,7 +121,6 @@ namespace FacadeHelper
         }
 
         public override string ToString() => INF_Code;
-
     }
 
     [SerializableType]
@@ -99,21 +128,36 @@ namespace FacadeHelper
     {
         private double _inf_MullionLength_Metric = 0;
         public double INF_MullionLength_Metric { get { return _inf_MullionLength_Metric; } set { _inf_MullionLength_Metric = value; OnPropertyChanged(nameof(INF_MullionLength_Metric)); } }
+
         public MullionInfo() => INF_Type = 1;
+
         /// <summary>
         /// 按竪梃方向初始化
         /// </summary>
         /// <param name="mulliontype">竪梃方向，1: 立柱，2：橫樑</param>
         public MullionInfo(int mulliontype) => INF_Type = mulliontype;
+
         public MullionInfo(Mullion mu)
         {
             #region MullionInfo 初始化
+
             INF_ElementId = mu.Id.IntegerValue;
             INF_Name = mu.Name;
             INF_Type = 0;
-            if (INF_Name.StartsWith("H")) INF_Type = 7;
-            if (INF_Name.StartsWith("V")) INF_Type = 8;
-            if (INF_Name.StartsWith("S")) INF_Type = 7;
+            if (INF_Name.StartsWith("H"))
+            {
+                INF_Type = 7;
+            }
+
+            if (INF_Name.StartsWith("V"))
+            {
+                INF_Type = 8;
+            }
+
+            if (INF_Name.StartsWith("S"))
+            {
+                INF_Type = 7;
+            }
 
             INF_ErrorInfo = $"{mu.Id}";
 
@@ -126,17 +170,21 @@ namespace FacadeHelper
             INF_OriginY_Metric = Unit.CovertFromAPI(DisplayUnitType.DUT_MILLIMETERS, _xyzOrigin.Y);
             INF_OriginZ_Metric = Unit.CovertFromAPI(DisplayUnitType.DUT_MILLIMETERS, _xyzOrigin.Z);
 
-
             Parameter _param;
-            if ((_param = mu.get_Parameter("分区区号")).HasValue)
+            if ((_param = mu.LookupParameter("分区区号")).HasValue)
             {
                 INF_ZoneCode = _param.AsString();
                 ResolveZoneCode();
             }
-            else INF_ErrorInfo += $"[参数未设置：分区区号]";
+            else
+            {
+                INF_ErrorInfo += $"[参数未设置：分区区号]";
+            }
             //立面楼层，分区区号 未读取
-            #endregion
+
+            #endregion MullionInfo 初始化
         }
+
         public MullionInfo(Mullion mu, int mulliontype) : this(mu) => INF_Type = mulliontype;
 
         public override string ToString() => INF_Code;
@@ -152,7 +200,6 @@ namespace FacadeHelper
             INF_Level = int.Parse(_array_field[2]);
             INF_ZoneIndex = int.Parse(_array_field[4]);
         }
-
     }
 
     [SerializableType]
@@ -164,7 +211,10 @@ namespace FacadeHelper
         public bool INF_HasDeepElements { get { return _inf_HasDeepElements; } set { _inf_HasDeepElements = value; OnPropertyChanged(nameof(INF_HasDeepElements)); } }
         public List<DeepElementInfo> INF_DeepElements { get { return _inf_DeepElements; } set { _inf_DeepElements = value; OnPropertyChanged(nameof(INF_DeepElements)); } }
 
-        public ScheduleElementInfo() { INF_HasDeepElements = false; INF_DeepElements = new List<DeepElementInfo>(); }
+        public ScheduleElementInfo()
+        {
+            INF_HasDeepElements = false; INF_DeepElements = new List<DeepElementInfo>();
+        }
     }
 
     [SerializableType]
@@ -252,6 +302,7 @@ namespace FacadeHelper
         public override string ToString() => INF_Code.ToString();
 
         public event PropertyChangedEventHandler PropertyChanged;
+
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -279,7 +330,7 @@ namespace FacadeHelper
             InfRightTopXyz = infRightTopXyz ?? throw new ArgumentNullException(nameof(infRightTopXyz));
         }
 
-        public HostInfo(int infElementId, XYZ infLeftBottomXyz, XYZ infRightTopXyz) 
+        public HostInfo(int infElementId, XYZ infLeftBottomXyz, XYZ infRightTopXyz)
         {
             InfElementId = infElementId;
             InfLeftBottomXyz = infLeftBottomXyz ?? throw new ArgumentNullException(nameof(infLeftBottomXyz));
@@ -293,6 +344,7 @@ namespace FacadeHelper
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -313,6 +365,7 @@ namespace FacadeHelper
         public double INF_LevelElevation_US { get { return _inf_LevelElevation_US; } set { _inf_LevelElevation_US = value; OnPropertyChanged(nameof(INF_LevelElevation_US)); } }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -320,14 +373,20 @@ namespace FacadeHelper
     [SerializableType]
     public class DesignZoneInfo : ZoneInfoBase
     {
-        public DesignZoneInfo(string zcode) : base(zcode) { }
+        public DesignZoneInfo(string zcode) : base(zcode)
+        {
+        }
+
         //public DesignZoneInfo(string zcode, DateTime zstart, DateTime zfinish) : base(zcode, zstart, zfinish) { }
     }
 
     [SerializableType]
     public class ProcessZoneInfo : ZoneInfoBase
     {
-        public ProcessZoneInfo(string zcode) : base(zcode) { }
+        public ProcessZoneInfo(string zcode) : base(zcode)
+        {
+        }
+
         //public ProcessZoneInfo(string zcode, DateTime zstart, DateTime zfinish) : base(zcode, zstart, zfinish) { }
     }
 
@@ -336,6 +395,7 @@ namespace FacadeHelper
     {
         //Z-00-99-AA-99, Z-01-99-AA-99, Z-02-99-AA-99
         private int _zoneExternalLinkId = 0;
+
         private string _zoneCode;
 
         private int _zoneLevel;
@@ -355,23 +415,30 @@ namespace FacadeHelper
 
         public string FilterName { get { return _filterName; } set { _filterName = value; OnPropertyChanged(nameof(FilterName)); } }
 
-        public ZoneInfoBase() { }
+        public ZoneInfoBase()
+        {
+        }
+
         public ZoneInfoBase(string zcode)
         {
-            if (!Regex.IsMatch(zcode, @"Z-\d{2}-\d{2}-[S|N|E|W][A-Z]-\d{2}")) throw new FormatException("Invalid zone code format while Initializing ZoneInfoBase instance.");
+            if (!Regex.IsMatch(zcode, @"Z-\d{2}-\d{2}-[S|N|E|W][A-Z]-\d{2}"))
+            {
+                throw new FormatException("Invalid zone code format while Initializing ZoneInfoBase instance.");
+            }
+
             ZoneCode = FilterName = zcode;
             string[] _segment_code = zcode.Split('-');
             ZoneLevel = int.Parse(_segment_code[2]);
             ZoneDirection = _segment_code[3].Substring(0, 1);
             ZoneSystem = _segment_code[3].Substring(1, 1);
             ZoneIndex = int.Parse(_segment_code[4]);
-
         }
 
         public override string ToString() => ZoneCode;
 
         public SelectionFilterElement LoadFilter(UIDocument uidoc)
         {
+            Document doc = uidoc.Document;
             FilteredElementCollector collector = new FilteredElementCollector(uidoc.Document);
             ICollection<Element> typecollection = collector.OfClass(typeof(SelectionFilterElement)).ToElements();
 
@@ -379,14 +446,22 @@ namespace FacadeHelper
 
             if (sef != null)
             {
-                uidoc.Selection.Elements.Clear();
-                foreach (ElementId id in sef.GetElementIds()) uidoc.Selection.Elements.Add(uidoc.Document.GetElement(id));
+                var elements = uidoc.Selection.GetElementIds()
+                    .ToList()
+                    .Select(id => doc.GetElement(id))
+                    .ToList();
+                elements.Clear();
+                foreach (ElementId id in sef.GetElementIds())
+                {
+                    elements.Add(uidoc.Document.GetElement(id));
+                }
             }
 
             return sef;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
         protected void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

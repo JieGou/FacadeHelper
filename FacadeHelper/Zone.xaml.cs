@@ -77,6 +77,7 @@ namespace FacadeHelper
         public int CurrentCultureIndex { get => _currentCultureIndex; set { _currentCultureIndex = value; OnPropertyChanged(nameof(CurrentCultureIndex)); } }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
         protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public Zone(ExternalCommandData commandData)
@@ -84,7 +85,7 @@ namespace FacadeHelper
             InitializeComponent();
             DataContext = this;
             InitializeCommand();
-            
+
             _cdata = commandData;
             _uiapp = commandData.Application;
             _uidoc = _uiapp.ActiveUIDocument;
@@ -103,6 +104,7 @@ namespace FacadeHelper
             }
 
             #region 检测 ElementIndexRange 是否加载
+
             var eirlist = ZoneHelper.FnElementIndexRangeDeserialize();
             if (eirlist is null)
             {
@@ -114,30 +116,44 @@ namespace FacadeHelper
                 Global.ElementIndexRangeList = eirlist;
                 IsElementIndexRangeInitialized = true;
             }
-            #endregion
+
+            #endregion 检测 ElementIndexRange 是否加载
 
             #region 检测 ElementClass 是否加载
+
             var eclist = ZoneHelper.FnFilterClassDeserialize();
-            if (eclist is null) IsElementClassInitialized = false;
+            if (eclist is null)
+            {
+                IsElementClassInitialized = false;
+            }
             else
             {
                 Global.ElementClassList = eclist;
                 IsElementClassInitialized = true;
             }
-            #endregion
+
+            #endregion 检测 ElementClass 是否加载
 
             #region 检测 ZoneLayer 是否加载
+
             var zllist = ZoneHelper.FnZoneDataDeserialize();
-            if (zllist is null) IsZoneLayerInitialized = false;
+            if (zllist is null)
+            {
+                IsZoneLayerInitialized = false;
+            }
             else
             {
                 Global.ZoneLayerList = zllist;
                 IsZoneLayerInitialized = true;
             }
-            #endregion
+
+            #endregion 检测 ZoneLayer 是否加载
 
             //确认PID/分区表/类型表都已加载才可允许工具条
-            if (!(IsPidInitialized && IsZoneLayerInitialized && IsElementClassInitialized)) panelCommandBar.IsEnabled = false;
+            if (!(IsPidInitialized && IsZoneLayerInitialized && IsElementClassInitialized))
+            {
+                panelCommandBar.IsEnabled = false;
+            }
 
             Global.DataFile = System.IO.Path.Combine(path1: Path.GetDirectoryName(_doc.PathName) ?? throw new InvalidOperationException(), path2: $"{System.IO.Path.GetFileNameWithoutExtension(_doc.PathName)}.data");
             if (Global.DocContent is null)
@@ -156,13 +172,11 @@ namespace FacadeHelper
 
             navZone.ItemsSource = Global.DocContent.ZoneList;
             datagridZones.ItemsSource = Global.DocContent.ZoneList;
-
-
-
         }
 
-        public Zone(){}
-
+        public Zone()
+        {
+        }
 
         #region 初始化 Command
 
@@ -188,17 +202,20 @@ namespace FacadeHelper
 
         private RoutedCommand cmdPopupClose = new RoutedCommand();
 
-
         private void InitializeCommand()
         {
             CommandBinding cbModelInit = new CommandBinding(cmdModelInit, cbModelInit_Executed, (sender, e) => { e.CanExecute = true; e.Handled = true; });
             CommandBinding cbT24Fix = new CommandBinding(cmdT24Fix, (sender, e) =>
             {
                 using (StreamWriter file = new StreamWriter(@"d:\11.csv", true))
+                {
                     Global.DocContent.ScheduleElementList.ForEach(se => file.WriteLine($"{se.INF_ElementId},{se.INF_Name},{se.INF_Type},{se.INF_TaskLayer},{se.INF_TaskSubLayer},{se.INF_Code}"));
-                using (StreamWriter file = new StreamWriter(@"d:\12.csv", true))
-                    Global.DocContent.FullScheduleElementList.ForEach(se => file.WriteLine($"{se.INF_ElementId},{se.INF_Name},{se.INF_Type},{se.INF_TaskLayer},{se.INF_TaskSubLayer},{se.INF_Code}"));
+                }
 
+                using (StreamWriter file = new StreamWriter(@"d:\12.csv", true))
+                {
+                    Global.DocContent.FullScheduleElementList.ForEach(se => file.WriteLine($"{se.INF_ElementId},{se.INF_Name},{se.INF_Type},{se.INF_TaskLayer},{se.INF_TaskSubLayer},{se.INF_Code}"));
+                }
 
                 Global.DocContent.CurtainPanelList.ForEach(p =>
                 {
@@ -224,8 +241,9 @@ namespace FacadeHelper
                         _sei.INF_OriginZ_Metric = Unit.CovertFromAPI(DisplayUnitType.DUT_MILLIMETERS, _xyzOrigin.Z);
 
                         #region 确定分项参数 + 工序层级
+
                         Parameter _parameter;
-                        _parameter = __element.get_Parameter("分项");
+                        _parameter = __element.LookupParameter/*get_Parameter*/("分项");
                         if (int.Parse(_parameter.AsString()) == 24)
                         {
                             _sei.INF_Type = 24;
@@ -235,23 +253,32 @@ namespace FacadeHelper
                             Global.DocContent.ScheduleElementList.Add(_sei);
                             listInformation.SelectedIndex = listInformation.Items.Add($"{_sei.INF_ElementId}, {_sei.INF_Name}, {_sei.INF_Type}, {_sei.INF_TaskLayer}");
                         }
-                        #endregion
+
+                        #endregion 确定分项参数 + 工序层级
                     }
                 });
                 listInformation.SelectedIndex = listInformation.Items.Add($"{Global.DocContent.ScheduleElementList.Where(se => se.INF_Type == 24).Count()}");
                 Global.DocContent.FullScheduleElementList.Clear();
                 Global.DocContent.FullScheduleElementList.AddRange(Global.DocContent.ScheduleElementList);
                 using (StreamWriter file = new StreamWriter(@"d:\21.csv", true))
+                {
                     Global.DocContent.ScheduleElementList.ForEach(se => file.WriteLine($"{se.INF_ElementId},{se.INF_Name},{se.INF_Type},{se.INF_TaskLayer},{se.INF_TaskSubLayer},{se.INF_Code}"));
-                using (StreamWriter file = new StreamWriter(@"d:\22.csv", true))
-                    Global.DocContent.FullScheduleElementList.ForEach(se => file.WriteLine($"{se.INF_ElementId},{se.INF_Name},{se.INF_Type},{se.INF_TaskLayer},{se.INF_TaskSubLayer},{se.INF_Code}"));
+                }
 
+                using (StreamWriter file = new StreamWriter(@"d:\22.csv", true))
+                {
+                    Global.DocContent.FullScheduleElementList.ForEach(se => file.WriteLine($"{se.INF_ElementId},{se.INF_Name},{se.INF_Type},{se.INF_TaskLayer},{se.INF_TaskSubLayer},{se.INF_Code}"));
+                }
             },
             (sender, e) => { e.CanExecute = true; e.Handled = true; });
 
             CommandBinding cbOnElementClassify = new CommandBinding(cmdOnElementClassify, (sender, e) =>
             {
-                if (bnOnElementClassify.IsChecked == true) return;
+                if (bnOnElementClassify.IsChecked == true)
+                {
+                    return;
+                }
+
                 if (Global.DocContent.CurrentZoneInfo.ZoneIndex == 0)
                 {
                     CurrentZoneLevel = Global.DocContent.CurrentZoneInfo.ZoneLevel = 1;
@@ -307,9 +334,23 @@ namespace FacadeHelper
                 (sender, e) =>
                 {
                     //Global.DocContent.ScheduleElementList.Clear();
-                    if (Global.DocContent.FullCurtainPanelList.Count == 0) Global.DocContent.FullCurtainPanelList.AddRange(Global.DocContent.CurtainPanelList);
-                    if (Global.DocContent.FullScheduleElementList.Count == 0) Global.DocContent.FullScheduleElementList.AddRange(Global.DocContent.ScheduleElementList);
-                    if (Global.DocContent.FullZoneList.Count == 0) foreach (var z in Global.DocContent.ZoneList) Global.DocContent.FullZoneList.Add(z);
+                    if (Global.DocContent.FullCurtainPanelList.Count == 0)
+                    {
+                        Global.DocContent.FullCurtainPanelList.AddRange(Global.DocContent.CurtainPanelList);
+                    }
+
+                    if (Global.DocContent.FullScheduleElementList.Count == 0)
+                    {
+                        Global.DocContent.FullScheduleElementList.AddRange(Global.DocContent.ScheduleElementList);
+                    }
+
+                    if (Global.DocContent.FullZoneList.Count == 0)
+                    {
+                        foreach (var z in Global.DocContent.ZoneList)
+                        {
+                            Global.DocContent.FullZoneList.Add(z);
+                        }
+                    }
 
                     progbarGlobalProcess.Maximum = Global.DocContent.FullZoneList.Count;
                     progbarGlobalProcess.Value = 0;
@@ -326,6 +367,8 @@ namespace FacadeHelper
                 },
                 (sender, e) => { e.CanExecute = true; e.Handled = true; });
 
+            var elements = _uidoc.Selection.GetElementIds()
+                .Select(id => _doc.GetElement(id)).ToList()/*Elements*/;
             CommandBinding cbElementExplode = new CommandBinding(cmdElementExplode,
                 (sender, e) =>
                 {
@@ -334,7 +377,11 @@ namespace FacadeHelper
                         "组合构件分解",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Question,
-                        MessageBoxResult.No) == MessageBoxResult.No) return;
+                        MessageBoxResult.No) == MessageBoxResult.No)
+                    {
+                        return;
+                    }
+
                     int[] assemlabels = new int[] { 21, 22, 24 };
                     var _ele_asm = Global.DocContent.ScheduleElementList.Where(ele => assemlabels.Contains(ele.INF_Type)).ToList();
                     listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - LIST: E/{_ele_asm.Count}/DEEP.");
@@ -372,11 +419,12 @@ namespace FacadeHelper
                                 };
 
                                 #region 确定分项参数 + 工序层级
+
                                 Parameter _parameter;
-                                _parameter = __element.get_Parameter("分项");
+                                _parameter = __element.LookupParameter/*get_Parameter*/("分项");
                                 if (_parameter != null)
                                 {
-                                    if ((_parameter = __element.get_Parameter("分项")).HasValue)
+                                    if ((_parameter = __element.LookupParameter/*get_Parameter*/("分项")).HasValue)
                                     {
                                         if (int.TryParse(_parameter.AsString(), out int _type))
                                         {
@@ -400,7 +448,7 @@ namespace FacadeHelper
                                             _haserror = true;
                                             _sei.INF_ErrorInfo = "构件[分项]参数错误(INF_Type)(非整数值)";
                                             listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - ERR: VALUE TYPE, PARAM/TYPE, P/{_sei.INF_HostCurtainPanel.INF_ElementId}, E/{_sei.INF_ElementId}, {_sei.INF_Name}.");
-                                            _uidoc.Selection.Elements.Add(__element);
+                                            elements.Add(__element);
                                             continue;
                                         }
                                     }
@@ -410,7 +458,7 @@ namespace FacadeHelper
                                         _haserror = true;
                                         _sei.INF_ErrorInfo = "构件[分项]参数无参数值(INF_Type)";
                                         listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - ERR: NO VALUE TYPE, PARAM/TYPE, P/{_sei.INF_HostCurtainPanel.INF_ElementId}, E/{_sei.INF_ElementId}, {_sei.INF_Name}.");
-                                        _uidoc.Selection.Elements.Add(__element);
+                                        elements.Add(__element);
                                         continue;
                                     }
                                 }
@@ -420,10 +468,11 @@ namespace FacadeHelper
                                     _haserror = true;
                                     _sei.INF_ErrorInfo = "构件[分项]参数项未设置(INF_Type)";
                                     listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - ERR: PARAM NOTSET, PARAM/TYPE, P/{_sei.INF_HostCurtainPanel.INF_ElementId}, {_sei.INF_ElementId}.");
-                                    _uidoc.Selection.Elements.Add(__element);
+                                    elements.Add(__element);
                                     continue;
                                 }
-                                #endregion
+
+                                #endregion 确定分项参数 + 工序层级
 
                                 DeepElementInfo _dei = new DeepElementInfo()
                                 {
@@ -496,11 +545,12 @@ namespace FacadeHelper
                                 };
 
                                 #region 确定分项参数 + 工序层级
+
                                 Parameter _parameter;
-                                _parameter = __element.get_Parameter("分项");
+                                _parameter = __element.LookupParameter("分项");
                                 if (_parameter != null)
                                 {
-                                    if ((_parameter = __element.get_Parameter("分项")).HasValue)
+                                    if ((_parameter = __element.LookupParameter("分项")).HasValue)
                                     {
                                         if (int.TryParse(_parameter.AsString(), out int _type))
                                         {
@@ -524,7 +574,7 @@ namespace FacadeHelper
                                             _haserror = true;
                                             _sei.INF_ErrorInfo = "构件[分项]参数错误(INF_Type)(非整数值)";
                                             listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - ERR: VALUE TYPE, PARAM/TYPE, P/{_sei.INF_HostCurtainPanel.INF_ElementId}, E/{_sei.INF_ElementId}, {_sei.INF_Name}.");
-                                            _uidoc.Selection.Elements.Add(__element);
+                                            elements.Add(__element);
                                             continue;
                                         }
                                     }
@@ -534,7 +584,7 @@ namespace FacadeHelper
                                         _haserror = true;
                                         _sei.INF_ErrorInfo = "构件[分项]参数无参数值(INF_Type)";
                                         listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - ERR: NO VALUE TYPE, PARAM/TYPE, P/{_sei.INF_HostCurtainPanel.INF_ElementId}, E/{_sei.INF_ElementId}, {_sei.INF_Name}.");
-                                        _uidoc.Selection.Elements.Add(__element);
+                                        elements.Add(__element);
                                         continue;
                                     }
                                 }
@@ -544,10 +594,11 @@ namespace FacadeHelper
                                     _haserror = true;
                                     _sei.INF_ErrorInfo = "构件[分项]参数项未设置(INF_Type)";
                                     listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - ERR: PARAM NOTSET, PARAM/TYPE, P/{_sei.INF_HostCurtainPanel.INF_ElementId}, {_sei.INF_ElementId}.");
-                                    _uidoc.Selection.Elements.Add(__element);
+                                    elements.Add(__element);
                                     continue;
                                 }
-                                #endregion
+
+                                #endregion 确定分项参数 + 工序层级
 
                                 Global.DocContent.DeepElementList.Add(_sei);
                                 ae.INF_DeepElements.Add(_sei);
@@ -556,9 +607,11 @@ namespace FacadeHelper
                     });
 
                     #region 確定嵌板內明細構件數據
+
                     var groupsDeepElements = Global.DocContent.DeepElementList.ToLookup(se => se.INF_HostScheduleElement.INF_Code);
                     int eidx = 0;
                     foreach (var grp in groupsDeepElements)
+                    {
                         foreach (var ele in grp)
                         {
                             ele.INF_Index = ++eidx;
@@ -566,13 +619,12 @@ namespace FacadeHelper
                             txtCurrentProcessElement.Content = $"E/{ele.INF_HostScheduleElement.INF_Code}.DEEP-E/{ele.INF_ElementId}, {ele.INF_Code}";
                             txtCurrentProcessOperation.Content = "W/TASK";
                             System.Windows.Forms.Application.DoEvents();
-
                         }
-                    #endregion
+                    }
 
+                    #endregion 確定嵌板內明細構件數據
                 },
                 (sender, e) => { e.CanExecute = true; e.Handled = true; });
-
 
             CommandBinding cbNavZone = new CommandBinding(cmdNavZone,
                 (sender, e) =>
@@ -613,7 +665,10 @@ namespace FacadeHelper
                         MessageBoxButton.OKCancel,
                         MessageBoxImage.Exclamation,
                         MessageBoxResult.OK) == MessageBoxResult.OK)
+                    {
                         Global.DocContent = new DocumentContent();
+                    }
+
                     listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - RESET: ALL DATA.");
                 },
                 (sender, e) => { e.CanExecute = true; e.Handled = true; });
@@ -621,7 +676,12 @@ namespace FacadeHelper
                 (sender, e) =>
                 {
                     #region 數據檢索
-                    if (!IsSearchRangeZone && !IsSearchRangePanel && !IsSearchRangeElement) return;
+
+                    if (!IsSearchRangeZone && !IsSearchRangePanel && !IsSearchRangeElement)
+                    {
+                        return;
+                    }
+
                     _resultZoneInfo.Clear();
                     _resultPanelInfo.Clear();
                     _resultElementInfo.Clear();
@@ -671,7 +731,7 @@ namespace FacadeHelper
                         tabElement.Content = $"构件 / SKIP";
                     }
 
-                    #endregion
+                    #endregion 數據檢索
                 },
                 (sender, e) => { e.CanExecute = true; e.Handled = true; });
             CommandBinding cbApplyParameters = new CommandBinding(cmdApplyParameters,
@@ -708,6 +768,7 @@ namespace FacadeHelper
                     }
 
                     #region 參數寫入
+
                     //try
                     {
                         using (Transaction trans = new Transaction(_doc, "Apply_Parameters_CurtainPanels"))
@@ -723,13 +784,13 @@ namespace FacadeHelper
                                 Element _element = _doc.GetElement(new ElementId(p.INF_ElementId));
                                 if (_element != null)
                                 {
-                                    _element.get_Parameter("立面朝向").Set(p.INF_Direction);
-                                    _element.get_Parameter("立面系统").Set(p.INF_System);
-                                    _element.get_Parameter("立面楼层").Set(p.INF_Level);
-                                    _element.get_Parameter("构件分项").Set(p.INF_Type);
-                                    _element.get_Parameter("分区序号").Set(p.INF_ZoneIndex);
-                                    _element.get_Parameter("分区区号").Set(p.INF_ZoneCode);
-                                    _element.get_Parameter("分区编码").Set(p.INF_Code);
+                                    _element.LookupParameter("立面朝向").Set(p.INF_Direction);
+                                    _element.LookupParameter("立面系统").Set(p.INF_System);
+                                    _element.LookupParameter("立面楼层").Set(p.INF_Level);
+                                    _element.LookupParameter("构件分项").Set(p.INF_Type);
+                                    _element.LookupParameter("分区序号").Set(p.INF_ZoneIndex);
+                                    _element.LookupParameter("分区区号").Set(p.INF_ZoneCode);
+                                    _element.LookupParameter("分区编码").Set(p.INF_Code);
                                 }
 
                                 if (IsRealTimeProgress)
@@ -761,13 +822,13 @@ namespace FacadeHelper
                                 Element _element = _doc.GetElement(new ElementId(ele.INF_ElementId));
                                 if (_element != null)
                                 {
-                                    _element.get_Parameter("立面朝向").Set(ele.INF_Direction);
-                                    _element.get_Parameter("立面系统").Set(ele.INF_System);
-                                    _element.get_Parameter("立面楼层").Set(ele.INF_Level);
-                                    _element.get_Parameter("构件分项").Set(ele.INF_Type);
-                                    _element.get_Parameter("分区序号").Set(ele.INF_ZoneIndex);
-                                    _element.get_Parameter("分区区号").Set(ele.INF_ZoneCode);
-                                    _element.get_Parameter("分区编码").Set(ele.INF_Code);
+                                    _element.LookupParameter("立面朝向").Set(ele.INF_Direction);
+                                    _element.LookupParameter("立面系统").Set(ele.INF_System);
+                                    _element.LookupParameter("立面楼层").Set(ele.INF_Level);
+                                    _element.LookupParameter("构件分项").Set(ele.INF_Type);
+                                    _element.LookupParameter("分区序号").Set(ele.INF_ZoneIndex);
+                                    _element.LookupParameter("分区区号").Set(ele.INF_ZoneCode);
+                                    _element.LookupParameter("分区编码").Set(ele.INF_Code);
                                 }
 
                                 if (IsRealTimeProgress)
@@ -794,25 +855,27 @@ namespace FacadeHelper
                             progbarCurrentProcess.Value = 0;
 
                             #region 设置项目参数：组件编码
+
                             if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "组件编码"))
                             {
                                 CategorySet _catset = new CategorySet();
                                 _catset.Insert(_doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                                 ParameterHelper.RawCreateProjectParameter(_doc.Application, "组件编码", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                             }
-                            #endregion
+
+                            #endregion 设置项目参数：组件编码
 
                             Global.DocContent.DeepElementList.ForEach(ele =>
                             {
                                 Element _element = _doc.GetElement(new ElementId(ele.INF_ElementId));
-                                _element.get_Parameter("立面朝向").Set(ele.INF_Direction);
-                                _element.get_Parameter("立面系统").Set(ele.INF_System);
-                                _element.get_Parameter("立面楼层").Set(ele.INF_Level);
-                                _element.get_Parameter("构件分项").Set(ele.INF_Type);
-                                _element.get_Parameter("分区序号").Set(ele.INF_ZoneIndex);
-                                _element.get_Parameter("分区区号").Set(ele.INF_ZoneCode);
-                                _element.get_Parameter("分区编码").Set(ele.INF_Code);
-                                _element.get_Parameter("组件编码").Set(ele.INF_HostScheduleElement.INF_Code);
+                                _element.LookupParameter("立面朝向").Set(ele.INF_Direction);
+                                _element.LookupParameter("立面系统").Set(ele.INF_System);
+                                _element.LookupParameter("立面楼层").Set(ele.INF_Level);
+                                _element.LookupParameter("构件分项").Set(ele.INF_Type);
+                                _element.LookupParameter("分区序号").Set(ele.INF_ZoneIndex);
+                                _element.LookupParameter("分区区号").Set(ele.INF_ZoneCode);
+                                _element.LookupParameter("分区编码").Set(ele.INF_Code);
+                                _element.LookupParameter("组件编码").Set(ele.INF_HostScheduleElement.INF_Code);
 
                                 if (IsRealTimeProgress)
                                 {
@@ -836,7 +899,7 @@ namespace FacadeHelper
                     }
                     //listboxOutput.SelectedIndex = listboxOutput.Items.Add($"写入[幕墙嵌板]:{Global.DocContent.CurtainPanelList.Count}，参数:{Global.DocContent.CurtainPanelList.Count * 6}...");
 
-                    #endregion
+                    #endregion 參數寫入
                 },
                 (sender, e) => { e.CanExecute = true; e.Handled = true; });
             CommandBinding cbExportElementSchedule = new CommandBinding(cmdExportElementSchedule,
@@ -853,7 +916,10 @@ namespace FacadeHelper
                             writer.WriteLine($"{++idtask},{zone.ZoneCode},,,1");
 
                             //foreach (var p in _plist) writer.WriteLine($"{++idtask},{p.INF_Code},{p.INF_TaskStart},{p.INF_TaskFinish},2");
-                            foreach (var m in _elist) writer.WriteLine($"{++idtask},{m.INF_Code},{m.INF_TaskStart},{m.INF_TaskFinish},2");
+                            foreach (var m in _elist)
+                            {
+                                writer.WriteLine($"{++idtask},{m.INF_Code},{m.INF_TaskStart},{m.INF_TaskFinish},2");
+                            }
                         }
                     }
                 },
@@ -914,10 +980,10 @@ namespace FacadeHelper
                 datagridScheduleElements.ItemsSource = _elist;
                 tabElement.Content = $"构件 / {_elist.Count()}, Z/{zi.ZoneCode}";
             }
-
         }
 
         #region Command -- bnElementClassify : 嵌板和构件归类
+
         private void cbElementClassify_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             bnOnElementClassify.IsChecked = false;
@@ -1004,11 +1070,12 @@ namespace FacadeHelper
                     _sei.INF_HostCurtainPanel = _gp;
 
                     #region 确定分项参数 + 工序层级
+
                     Parameter _parameter;
-                    _parameter = __element.get_Parameter("分项");
+                    _parameter = __element.LookupParameter("分项");
                     if (_parameter != null)
                     {
-                        if ((_parameter = __element.get_Parameter("分项")).HasValue)
+                        if ((_parameter = __element.LookupParameter("分项")).HasValue)
                         {
                             if (int.TryParse(_parameter.AsString(), out int _type))
                             {
@@ -1052,7 +1119,8 @@ namespace FacadeHelper
                         listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - ERR: PARAM NOTSET, PARAM/TYPE, P/{_sei.INF_HostCurtainPanel.INF_ElementId}, {_sei.INF_ElementId}.");
                         continue;
                     }
-                    #endregion
+
+                    #endregion 确定分项参数 + 工序层级
 
                     XYZ _xyzOrigin = ((FamilyInstance)__element).GetTotalTransform().Origin;
                     _sei.INF_OriginX_Metric = Unit.CovertFromAPI(DisplayUnitType.DUT_MILLIMETERS, _xyzOrigin.X);
@@ -1061,15 +1129,19 @@ namespace FacadeHelper
 
                     Global.DocContent.ScheduleElementList.Add(_sei);
                 }
-
             });
 
             #region 构件参数错误中断操作确认
+
             if (_haserror)
             {
-                if (MessageBox.Show($"有部分构件存在参数错误，是否继续处理数据？", "构件参数错误...", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.No) return;
+                if (MessageBox.Show($"有部分构件存在参数错误，是否继续处理数据？", "构件参数错误...", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.No)
+                {
+                    return;
+                }
             }
-            #endregion
+
+            #endregion 构件参数错误中断操作确认
 
             listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - WRITE: PARAM, ZONECODE, Z/{Global.DocContent.CurrentZoneInfo.ZoneCode}, P/{panels.Count()}.");
 
@@ -1083,8 +1155,15 @@ namespace FacadeHelper
                 FilteredElementCollector collector = new FilteredElementCollector(_doc);
                 ICollection<Element> typecollection = collector.OfClass(typeof(SelectionFilterElement)).ToElements();
                 SelectionFilterElement selectset = typecollection.Cast<SelectionFilterElement>().FirstOrDefault(ele => ele.Name == _currentZoneInfo.ZoneCode);
-                if (selectset != null) selectset.Clear();
-                else selectset = SelectionFilterElement.Create(_doc, _currentZoneInfo.ZoneCode);
+                if (selectset != null)
+                {
+                    selectset.Clear();
+                }
+                else
+                {
+                    selectset = SelectionFilterElement.Create(_doc, _currentZoneInfo.ZoneCode);
+                }
+
                 panels.ForEach(p => selectset.AddSingle(p.Id));
                 _doc.ActiveView.HideElementsTemporary(selectset.GetElementIds());
                 trans.Commit();
@@ -1097,21 +1176,24 @@ namespace FacadeHelper
             ZoneHelper.FnContentSerialize();
         }
 
-        #endregion
+        #endregion Command -- bnElementClassify : 嵌板和构件归类
 
         #region Command -- bnModelInit : 模型初始化
+
         private void cbModelInit_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             InitModelData();
         }
-        #endregion
+
+        #endregion Command -- bnModelInit : 模型初始化
 
         #region Function 初始化模型数据
+
         private void InitModelData()
         {
             ParameterHelper.InitProjectParameters(ref _doc);
 
-            //统计 
+            //统计
             LogicalAndFilter cwpanel_InstancesFilter =
                 new LogicalAndFilter(new ElementClassFilter(typeof(FamilyInstance)), new ElementCategoryFilter(BuiltInCategory.OST_CurtainWallPanels));
             LogicalAndFilter win_InstancesFilter =
@@ -1124,17 +1206,33 @@ namespace FacadeHelper
             int nele = 0;
             int nwele = 0;
             int nsysele = 0;
-            foreach (var _p in panels) nele += (_p as FamilyInstance).GetSubComponentIds().Count;
-            foreach (var _w in wins) nwele += (_w as FamilyInstance).GetSubComponentIds().Count;
-            foreach (var _p in syspanels) nsysele += (_p as FamilyInstance).GetSubComponentIds().Count;
+            foreach (var _p in panels)
+            {
+                nele += (_p as FamilyInstance).GetSubComponentIds().Count;
+            }
+
+            foreach (var _w in wins)
+            {
+                nwele += (_w as FamilyInstance).GetSubComponentIds().Count;
+            }
+
+            foreach (var _p in syspanels)
+            {
+                nsysele += (_p as FamilyInstance).GetSubComponentIds().Count;
+            }
+
             listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - CALC: TOTAL, P/{panels.Count():N0}, E/{nele:N0}, SYS-P/{syspanels.Count():N0}, SYS-E/{nsysele:N0}");
             listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - CALC: TOTAL, W/{wins.Count():N0}, E/{nwele:N0}");
         }
 
-        #endregion        
-        #endregion
+        #endregion Function 初始化模型数据
 
-        private void listInformation_SelectionChanged(object sender, SelectionChangedEventArgs e) { var lb = sender as ListBox; lb.ScrollIntoView(lb.Items[lb.Items.Count - 1]); }
+        #endregion 初始化 Command
+
+        private void listInformation_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var lb = sender as ListBox; lb.ScrollIntoView(lb.Items[lb.Items.Count - 1]);
+        }
 
         private void Chkbox_Checked(object sender, RoutedEventArgs e)
         {
@@ -1147,20 +1245,31 @@ namespace FacadeHelper
                         IsSearchRangePanel = true;
                         IsSearchRangeElement = true;
                         break;
+
                     case false:
                         IsSearchRangeZone = false;
                         IsSearchRangePanel = false;
                         IsSearchRangeElement = false;
                         break;
+
                     default:
                         break;
                 }
             }
             else
             {
-                if (IsSearchRangeZone && IsSearchRangePanel && IsSearchRangeElement) IsSearchRangeAll = true;
-                else if (!IsSearchRangeZone && !IsSearchRangePanel && !IsSearchRangeElement) IsSearchRangeAll = false;
-                else IsSearchRangeAll = null;
+                if (IsSearchRangeZone && IsSearchRangePanel && IsSearchRangeElement)
+                {
+                    IsSearchRangeAll = true;
+                }
+                else if (!IsSearchRangeZone && !IsSearchRangePanel && !IsSearchRangeElement)
+                {
+                    IsSearchRangeAll = false;
+                }
+                else
+                {
+                    IsSearchRangeAll = null;
+                }
             }
             ((CheckBox)sender).GetBindingExpression(CheckBox.IsCheckedProperty).UpdateTarget();
         }
@@ -1168,10 +1277,11 @@ namespace FacadeHelper
         private void datagridElements_GotFocus(object sender, RoutedEventArgs e)
         {
             ScheduleElementInfo currentsei = new ScheduleElementInfo();
-            if (datagridScheduleElements.CurrentItem != null) currentsei = (ScheduleElementInfo)(datagridScheduleElements.CurrentItem);
-
+            if (datagridScheduleElements.CurrentItem != null)
+            {
+                currentsei = (ScheduleElementInfo)(datagridScheduleElements.CurrentItem);
+            }
         }
-
     }
 
     public class IntToBoolConverter : IValueConverter
@@ -1205,12 +1315,15 @@ namespace FacadeHelper
         }
     }
 
-
     public class PrefixConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) return false;
+            if (value == null)
+            {
+                return false;
+            }
+
             return (value as string).StartsWith(parameter as string);
         }
 
@@ -1225,16 +1338,28 @@ namespace FacadeHelper
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             bool bValue = (bool)value;
-            if (bValue) return System.Windows.Visibility.Visible;
-            else return System.Windows.Visibility.Collapsed;
+            if (bValue)
+            {
+                return System.Windows.Visibility.Visible;
+            }
+            else
+            {
+                return System.Windows.Visibility.Collapsed;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             System.Windows.Visibility visibility = (System.Windows.Visibility)value;
 
-            if (visibility == System.Windows.Visibility.Visible) return true;
-            else return false;
+            if (visibility == System.Windows.Visibility.Visible)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 
@@ -1244,11 +1369,15 @@ namespace FacadeHelper
         {
             int eleid = (int)values[0]; //INF_ElementId
             string pname = (string)values[1]; //ParamName
-            Document doc = (Document) values[2];
+            Document doc = (Document)values[2];
             if (pname is null)
+            {
                 return string.Empty;
+            }
             else
-                return  doc.GetElement(new ElementId(eleid)).get_Parameter(pname).AsValueString();
+            {
+                return doc.GetElement(new ElementId(eleid)).LookupParameter(pname).AsValueString();
+            }
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
@@ -1256,7 +1385,6 @@ namespace FacadeHelper
             throw new NotImplementedException();
         }
     }
-
 
     public class NegateBoolConverter : IValueConverter
     {
@@ -1302,6 +1430,7 @@ namespace FacadeHelper
             return new ValidationResult(true, null);
         }
     }
+
     public class ProjectIDRule : ValidationRule
     {
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)

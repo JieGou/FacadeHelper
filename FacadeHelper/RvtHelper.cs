@@ -32,9 +32,10 @@ namespace FacadeHelper
     /// <summary>
     /// Provides static functions to convert unit
     /// </summary>
-    static class Unit
+    internal static class Unit
     {
         #region Methods
+
         /// <summary>
         /// Convert the value get from RevitAPI to the value indicated by DisplayUnitType
         /// </summary>
@@ -77,11 +78,12 @@ namespace FacadeHelper
                 default: return 1;
             }
         }
-        #endregion
+
+        #endregion Methods
     }
+
     public static class ParameterHelper
     {
-
         #region RawProjectParameterInfo
 
         public class RawProjectParameterInfo
@@ -205,41 +207,67 @@ namespace FacadeHelper
         …
          * **/
 
-
-        #endregion
-
+        #endregion RawProjectParameterInfo
 
         #region Create Project Parameter
 
         public static void RawCreateProjectParameterFromExistingSharedParameter(RvtApplication app, string name, CategorySet cats, BuiltInParameterGroup group, bool inst)
         {
             DefinitionFile defFile = app.OpenSharedParameterFile();
-            if (defFile == null) throw new Exception("No SharedParameter File!");
+            if (defFile == null)
+            {
+                throw new Exception("No SharedParameter File!");
+            }
 
             var v = (from DefinitionGroup dg in defFile.Groups
                      from ExternalDefinition d in dg.Definitions
                      where d.Name == name
                      select d);
-            if (v == null || v.Count() < 1) throw new Exception("Invalid Name Input!");
+            if (v == null || v.Count() < 1)
+            {
+                throw new Exception("Invalid Name Input!");
+            }
 
             ExternalDefinition def = v.First();
 
             Autodesk.Revit.DB.Binding binding = app.Create.NewTypeBinding(cats);
-            if (inst) binding = app.Create.NewInstanceBinding(cats);
+            if (inst)
+            {
+                binding = app.Create.NewInstanceBinding(cats);
+            }
 
             BindingMap map = (new UIApplication(app)).ActiveUIDocument.Document.ParameterBindings;
             map.Insert(def, binding, group);
         }
 
-        public static void RawCreateProjectParameterFromNewSharedParameter(RvtApplication app, string defGroup, string name, ParameterType type, bool visible, CategorySet cats, BuiltInParameterGroup paramGroup, bool inst)
+        public static void RawCreateProjectParameterFromNewSharedParameter(RvtApplication app, string defGroupName, string name, ParameterType type, bool visible, CategorySet cats, BuiltInParameterGroup paramGroup, bool inst)
         {
             DefinitionFile defFile = app.OpenSharedParameterFile();
-            if (defFile == null) throw new Exception("No SharedParameter File!");
+            if (defFile == null)
+            {
+                throw new Exception("No SharedParameter File!");
+            }
 
-            ExternalDefinition def = app.OpenSharedParameterFile().Groups.Create(defGroup).Definitions.Create(name, type, visible) as ExternalDefinition;
+            //ExternalDefinition def = app.OpenSharedParameterFile()
+            //    .Groups
+            //    .Create(defGroupName)
+            //    .Definitions
+            //    .Create(name, type, visible) as ExternalDefinition;
+            DefinitionFile sharedFile = app.OpenSharedParameterFile();
+            DefinitionGroups defGroups = sharedFile.Groups;
+            DefinitionGroup defGroup = defGroups.Create(defGroupName);
+            Definition def = defGroup.Definitions.Create(new ExternalDefinitionCreationOptions(name, type)
+            {
+                Visible = visible,
+                UserModifiable = true,
+                Description = name
+            });
 
             Autodesk.Revit.DB.Binding binding = app.Create.NewTypeBinding(cats);
-            if (inst) binding = app.Create.NewInstanceBinding(cats);
+            if (inst)
+            {
+                binding = app.Create.NewInstanceBinding(cats);
+            }
 
             BindingMap map = (new UIApplication(app)).ActiveUIDocument.Document.ParameterBindings;
             map.Insert(def, binding, paramGroup);
@@ -255,29 +283,43 @@ namespace FacadeHelper
             using (File.Create(tempFile)) { }
             app.SharedParametersFilename = tempFile;
 
-            ExternalDefinition def = app.OpenSharedParameterFile().Groups.Create("TemporaryDefintionGroup").Definitions.Create(name, type, visible) as ExternalDefinition;
+            //ExternalDefinition def = app.OpenSharedParameterFile()
+            //    .Groups.Create("TemporaryDefintionGroup")
+            //    .Definitions
+            //    .Create(name, type, visible) as ExternalDefinition;
+
+            DefinitionFile sharedFile = app.OpenSharedParameterFile();
+            DefinitionGroups defGroups = sharedFile.Groups;
+            DefinitionGroup defGroup = defGroups.Create("TemporaryDefintionGroup");
+            Definition def = defGroup.Definitions.Create(new ExternalDefinitionCreationOptions(name, type)
+            {
+                Visible = visible,
+                UserModifiable = true,
+                Description = name
+            });
 
             app.SharedParametersFilename = oriFile;
             File.Delete(tempFile);
 
             Autodesk.Revit.DB.Binding binding = app.Create.NewTypeBinding(cats);
-            if (inst) binding = app.Create.NewInstanceBinding(cats);
+            if (inst)
+            {
+                binding = app.Create.NewInstanceBinding(cats);
+            }
 
             BindingMap map = (new UIApplication(app)).ActiveUIDocument.Document.ParameterBindings;
             map.Insert(def, binding, group);
         }
 
-        #endregion
+        #endregion Create Project Parameter
 
         #region project parameter guid
+
         /// <summary>
-        /// This class contains information discovered about a (shared or non-shared) project parameter 
+        /// This class contains information discovered about a (shared or non-shared) project parameter
         /// </summary>
 
-
         // ================= HELPER METHODS ======================================================================================
-
-
 
         /// <summary>
         /// Returns a list of the objects containing references to the project parameter definitions
@@ -310,10 +352,8 @@ namespace FacadeHelper
             return result;
         }
 
-
-
         /// <summary>
-        /// This method takes a category and information about a project parameter and 
+        /// This method takes a category and information about a project parameter and
         /// adds a binding to the category for the parameter.  It will throw an exception if the parameter
         /// is already bound to the desired category.  It returns whether or not the API reports that it
         /// successfully bound the parameter to the desired category.
@@ -387,9 +427,6 @@ namespace FacadeHelper
             return result;
         }
 
-
-
-
         /// <summary>
         /// This method populates the appropriate values on a ProjectParameterData object with information from
         /// the given Parameter object.
@@ -419,12 +456,12 @@ namespace FacadeHelper
                     projectParameterDataToFill.GUID = parameter.GUID.ToString();
                 }
             }
-
         }  // end of PopulateProjectParameterData
 
-        #endregion
+        #endregion project parameter guid
 
         #region 初始化项目参数
+
         public static void InitProjectParameters(ref Document doc)
         {
             #region 设置项目参数
@@ -432,7 +469,9 @@ namespace FacadeHelper
             using (Transaction trans = new Transaction(doc, "CreateProjectParameters"))
             {
                 trans.Start();
+
                 #region 设置项目参数：立面朝向
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "立面朝向"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -442,8 +481,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "立面朝向", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：立面朝向
+
                 #region 设置项目参数：立面系统
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "立面系统"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -453,8 +495,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "立面系统", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：立面系统
+
                 #region 设置项目参数：立面楼层
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "立面楼层"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -464,8 +509,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "立面楼层", ParameterType.Integer, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：立面楼层
+
                 #region 设置项目参数：构件分项
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "构件分项"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -475,8 +523,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "构件分项", ParameterType.Integer, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：构件分项
+
                 #region 设置项目参数：构件子项
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "构件子项"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -486,8 +537,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "构件子项", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：构件子项
+
                 #region 设置项目参数：加工编号
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "加工编号"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -496,8 +550,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "加工编号", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：加工编号
+
                 #region 设置项目参数：材料单号
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "材料单号"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -506,9 +563,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "材料单号", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：材料单号
 
                 #region 设置项目参数：分区序号
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "分区序号"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -518,9 +577,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "分区序号", ParameterType.Integer, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：分区序号
 
                 #region 设置项目参数：分区区号
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "分区区号"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -530,9 +591,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "分区区号", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：分区区号
 
                 #region 设置项目参数：分区编码
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "分区编码"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -542,9 +605,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "分区编码", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：分区编码
 
                 #region 设置项目参数：進場時間
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "进场时间"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -554,9 +619,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "进场时间", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_PHASING, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：進場時間
 
                 #region 设置项目参数：安裝開始
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "安装开始"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -566,9 +633,11 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "安装开始", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_PHASING, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：安裝開始
 
                 #region 设置项目参数：安裝結束
+
                 if (!Global.DocContent.ParameterInfoList.Exists(x => x.Name == "安装结束"))
                 {
                     CategorySet _catset = new CategorySet();
@@ -578,26 +647,27 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
                     ParameterHelper.RawCreateProjectParameter(doc.Application, "安装结束", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_PHASING, true);
                 }
-                #endregion
+
+                #endregion 设置项目参数：安裝結束
+
                 Global.DocContent.ParameterInfoList = ParameterHelper.RawGetProjectParametersInfo(doc);
                 trans.Commit();
-
             }
-            #endregion
+
+            #endregion 设置项目参数
         }
 
-        #endregion
+        #endregion 初始化项目参数
 
         public static void IsolateCategoriesAndZoom(ElementId eid, UIApplication uiapp)
         {
-
         }
-
     }
 
     public static class ZoneHelper
     {
         #region 初始化Filter Element Class
+
         /// <summary>
         /// 初始化Filter Element Class
         /// </summary>
@@ -643,33 +713,50 @@ namespace FacadeHelper
             };
             return eclist;
         }
-        #endregion
+
+        #endregion 初始化Filter Element Class
 
         public static void FnFilterClassSerialize(List<ElementClass> eclist)
         {
             var ecfile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{Global.GetAppConfig("CurrentProjectID")}.class.xml");
-            if (File.Exists(ecfile)) File.Delete(ecfile);
+            if (File.Exists(ecfile))
+            {
+                File.Delete(ecfile);
+            }
+
             XMLDeserializerHelper.Serialization<List<ElementClass>>(eclist, ecfile);
         }
 
         public static List<ElementClass> FnFilterClassDeserialize()
         {
             var ecfile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{Global.GetAppConfig("CurrentProjectID")}.class.xml");
-            if (!File.Exists(ecfile)) return null;
+            if (!File.Exists(ecfile))
+            {
+                return null;
+            }
+
             return XMLDeserializerHelper.Deserialization<List<ElementClass>>(ecfile);
         }
 
         public static void FnElementIndexRangeSerialize(List<ElementIndexRange> eirlist)
         {
             var eirfile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{Global.GetAppConfig("CurrentProjectID")}.range.xml");
-            if (File.Exists(eirfile)) File.Delete(eirfile);
+            if (File.Exists(eirfile))
+            {
+                File.Delete(eirfile);
+            }
+
             XMLDeserializerHelper.Serialization<List<ElementIndexRange>>(eirlist, eirfile);
         }
 
         public static List<ElementIndexRange> FnElementIndexRangeDeserialize()
         {
             var eirfile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{Global.GetAppConfig("CurrentProjectID")}.range.xml");
-            if (!File.Exists(eirfile)) return new List<ElementIndexRange>();
+            if (!File.Exists(eirfile))
+            {
+                return new List<ElementIndexRange>();
+            }
+
             return XMLDeserializerHelper.Deserialization<List<ElementIndexRange>>(eirfile);
         }
 
@@ -677,7 +764,9 @@ namespace FacadeHelper
         /// 加载ACADE导出的分区进度数据 - 4D设计模型
         /// </summary>
         /// <param name="ZoneScheduleDataFile">进度数据文件(*.txt)</param>
+
         #region 加载ACADE导出的分区进度数据至当前项目
+
         public static string FnZoneDataSerialize(string ZoneScheduleDataFile)
         {
             List<ZoneLayerInfo> zllist = new List<ZoneLayerInfo>();
@@ -703,6 +792,7 @@ namespace FacadeHelper
                     }
 
                     if (rowdata.Length > 2)
+                    {
                         if (int.TryParse(rowdata[2].Substring(2, 2), out int lv2))
                         {
                             if (lv2 != 1)
@@ -717,6 +807,8 @@ namespace FacadeHelper
                             L0.ZoneStart = DateTime.Parse($"{rowdata[3].Substring(0, 2)}/{rowdata[3].Substring(2, 2)}/{rowdata[3].Substring(4, 2)}");
                             L0.ZoneFinish = DateTime.Parse($"{rowdata[4].Substring(0, 2)}/{rowdata[4].Substring(2, 2)}/{rowdata[4].Substring(4, 2)}");
                         }
+                    }
+
                     if (rowdata.Length > 5)
                     {
                         if (int.TryParse(rowdata[5].Substring(2, 2), out int lv5))
@@ -785,7 +877,11 @@ namespace FacadeHelper
             }
 
             var zfile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{Global.GetAppConfig("CurrentProjectID")}.zone.xml");
-            if (File.Exists(zfile)) File.Delete(zfile);
+            if (File.Exists(zfile))
+            {
+                File.Delete(zfile);
+            }
+
             XMLDeserializerHelper.Serialization<List<ZoneLayerInfo>>(zllist, zfile);
             return zfile;
         }
@@ -793,17 +889,29 @@ namespace FacadeHelper
         public static List<ZoneLayerInfo> FnZoneDataDeserialize()
         {
             var zfile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{Global.GetAppConfig("CurrentProjectID")}.zone.xml");
-            if (!File.Exists(zfile)) return null;
+            if (!File.Exists(zfile))
+            {
+                return null;
+            }
+
             return XMLDeserializerHelper.Deserialization<List<ZoneLayerInfo>>(zfile);
         }
 
-        #endregion
+        #endregion 加载ACADE导出的分区进度数据至当前项目
 
         #region 加载外部链接项目的构件数据
+
         public static void FnLinkedElementsDeserialize(string[] linkfiles)
         {
-            if (Global.DocContent.FullCurtainPanelList.Count == 0) Global.DocContent.FullCurtainPanelList.AddRange(Global.DocContent.CurtainPanelList);
-            if (Global.DocContent.FullScheduleElementList.Count == 0) Global.DocContent.FullScheduleElementList.AddRange(Global.DocContent.ScheduleElementList);
+            if (Global.DocContent.FullCurtainPanelList.Count == 0)
+            {
+                Global.DocContent.FullCurtainPanelList.AddRange(Global.DocContent.CurtainPanelList);
+            }
+
+            if (Global.DocContent.FullScheduleElementList.Count == 0)
+            {
+                Global.DocContent.FullScheduleElementList.AddRange(Global.DocContent.ScheduleElementList);
+            }
 
             for (int i = 0; i < linkfiles.Length; i++)
             {
@@ -824,9 +932,11 @@ namespace FacadeHelper
                 }
             }
         }
-        #endregion
+
+        #endregion 加载外部链接项目的构件数据
 
         #region 序列化外部链接项目的构件数据
+
         public static void FnLinkedElementsSerialize(ref ListBox listinfo)
         {
             foreach (var d in Global.DocContent.ExternalElementDataList)
@@ -837,7 +947,11 @@ namespace FacadeHelper
                     d.ScheduleElementList = Global.DocContent.FullScheduleElementList.FindAll(se => se.INF_ExternalLinkId == d.ExternalId);
                     d.ExternalFileName = Path.ChangeExtension(d.ExternalFileName, "sort");
                 }
-                using (FileStream fs = new FileStream(d.ExternalFileName, FileMode.Create)) Serializer.Serialize(fs, d);
+                using (FileStream fs = new FileStream(d.ExternalFileName, FileMode.Create))
+                {
+                    Serializer.Serialize(fs, d);
+                }
+
                 listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - UPDATE: EXTDATA, {d.ExternalFileName}.");
             }
 
@@ -850,14 +964,18 @@ namespace FacadeHelper
                 ScheduleElementList = Global.DocContent.ScheduleElementList
             };
 
-            using (FileStream fs = new FileStream(originaldata.ExternalFileName, FileMode.Create)) Serializer.Serialize(fs, originaldata);
+            using (FileStream fs = new FileStream(originaldata.ExternalFileName, FileMode.Create))
+            {
+                Serializer.Serialize(fs, originaldata);
+            }
+
             listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - UPDATE: EXTDATA(SELF), {originaldata.ExternalFileName}.");
-
         }
-        #endregion
 
+        #endregion 序列化外部链接项目的构件数据
 
         #region 搜索构件
+
         public static void FnSearch(UIDocument uidoc,
             string querystring,
             ref List<ZoneInfoBase> relistzone, ref List<CurtainPanelInfo> relistpanel, ref List<ScheduleElementInfo> relistelement,
@@ -870,13 +988,26 @@ namespace FacadeHelper
             //if (hasrangezone && DateTime.TryParse(querystring, out DateTime querydatetime))
             //relistzone.AddRange(Global.DocContent.ZoneList.Where(z => z.ZoneLayerStart.Equals(querydatetime) || z.ZoneLayerFinish.Equals(querydatetime)));
 
-            if (hasrangezone) relistzone.AddRange(Global.DocContent.FullZoneList.Where(z => Regex.IsMatch(z.ZoneCode, querystring, RegexOptions.IgnoreCase)));
-            if (hasrangepanel) relistpanel.AddRange(Global.DocContent.FullCurtainPanelList.Where(p => Regex.IsMatch($"{p.INF_ElementId} # {p.INF_Code}", querystring, RegexOptions.IgnoreCase)));
-            if (hasrangeelement) relistelement.AddRange(Global.DocContent.FullScheduleElementList.Where(e => Regex.IsMatch($"{e.INF_ElementId} # {e.INF_Code}", querystring, RegexOptions.IgnoreCase)));
+            if (hasrangezone)
+            {
+                relistzone.AddRange(Global.DocContent.FullZoneList.Where(z => Regex.IsMatch(z.ZoneCode, querystring, RegexOptions.IgnoreCase)));
+            }
+
+            if (hasrangepanel)
+            {
+                relistpanel.AddRange(Global.DocContent.FullCurtainPanelList.Where(p => Regex.IsMatch($"{p.INF_ElementId} # {p.INF_Code}", querystring, RegexOptions.IgnoreCase)));
+            }
+
+            if (hasrangeelement)
+            {
+                relistelement.AddRange(Global.DocContent.FullScheduleElementList.Where(e => Regex.IsMatch($"{e.INF_ElementId} # {e.INF_Code}", querystring, RegexOptions.IgnoreCase)));
+            }
         }
-        #endregion
+
+        #endregion 搜索构件
 
         #region 4D设计分区，嵌板和构件分析
+
         /// <summary>
         /// 设计分区，嵌板和构件分析
         /// </summary>
@@ -889,7 +1020,7 @@ namespace FacadeHelper
         public static void FnResolveZone_MixSort(UIDocument uidoc, ZoneInfoBase zone, ref Label txt_curr_ele, ref Label txt_curr_op, ref ProgressBar progbar_curr, ref ListBox listinfo)
         {
             var doc = uidoc.Document;
-            uidoc.Selection.Elements.Clear();
+            uidoc.Selection./*Elements*/GetElementIds().Clear();
 
             IOrderedEnumerable<CurtainPanelInfo> _panelsinzone = null;
             IOrderedEnumerable<ScheduleElementInfo>[] _sesinzone = new IOrderedEnumerable<ScheduleElementInfo>[3];
@@ -899,6 +1030,7 @@ namespace FacadeHelper
             System.Windows.Forms.Application.DoEvents();
 
             #region CurtainPanelList 排序
+
             switch (zone.ZoneDirection)
             {
                 case "S":
@@ -910,6 +1042,7 @@ namespace FacadeHelper
                         .ThenBy(p1 => Math.Round(p1.INF_OriginZ_Metric / Constants.RVTPrecision))
                         .ThenBy(p2 => Math.Round(p2.INF_OriginX_Metric / Constants.RVTPrecision));
                     break;
+
                 case "N":
                     listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}/P, X-, Z+...");
                     System.Windows.Forms.Application.DoEvents();
@@ -919,6 +1052,7 @@ namespace FacadeHelper
                         .ThenBy(p1 => Math.Round(p1.INF_OriginZ_Metric / Constants.RVTPrecision))
                         .ThenByDescending(p2 => Math.Round(p2.INF_OriginX_Metric / Constants.RVTPrecision));
                     break;
+
                 case "E":
                     listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}/P, Y+, Z+...");
                     System.Windows.Forms.Application.DoEvents();
@@ -928,6 +1062,7 @@ namespace FacadeHelper
                         .ThenBy(p1 => Math.Round(p1.INF_OriginZ_Metric / Constants.RVTPrecision))
                         .ThenBy(p2 => Math.Round(p2.INF_OriginY_Metric / Constants.RVTPrecision));
                     break;
+
                 case "W":
                     listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}/P, Y-, Z+...");
                     System.Windows.Forms.Application.DoEvents();
@@ -937,15 +1072,19 @@ namespace FacadeHelper
                         .ThenBy(p1 => Math.Round(p1.INF_OriginZ_Metric / Constants.RVTPrecision))
                         .ThenByDescending(p2 => Math.Round(p2.INF_OriginY_Metric / Constants.RVTPrecision));
                     break;
+
                 default: break;
             }
-            #endregion
+
+            #endregion CurtainPanelList 排序
 
             progbar_curr.Maximum = _panelsinzone.Count();
             progbar_curr.Value = 0;
 
             listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - CODE: Z/{zone.ZoneCode}/P.");
+
             #region 確定分區內嵌板數據及排序
+
             int pindex = 0;
             foreach (CurtainPanelInfo _pi in _panelsinzone)
             {
@@ -958,7 +1097,8 @@ namespace FacadeHelper
                 _pi.INF_Index = ++pindex;
                 _pi.INF_Code = $"CW-{_pi.INF_Type:00}-{_pi.INF_Level:00}-{_pi.INF_Direction}{_pi.INF_System}{_pi.INF_ZoneIndex:0}-{pindex:0000}";
             }
-            #endregion
+
+            #endregion 確定分區內嵌板數據及排序
 
             var _layersinzone = Global.ZoneLayerList.Where(zs => zs.ZoneCode.Equals(zone.ZoneCode, StringComparison.CurrentCultureIgnoreCase));
 
@@ -969,6 +1109,7 @@ namespace FacadeHelper
             foreach (var layergroup in layersgroupsScheduleElement)
             {
                 #region 明细构件 排序
+
                 switch (zone.ZoneDirection)
                 {
                     case "S":
@@ -984,6 +1125,7 @@ namespace FacadeHelper
                         .ThenBy(e4 => Math.Round(doc.GetElement(new ElementId(e4.INF_ElementId)).get_BoundingBox(doc.ActiveView).Min.X / Constants.RVTPrecision));
                         **/
                         break;
+
                     case "N":
                         listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}@{layergroup.Key}, X-, Z+...");
                         System.Windows.Forms.Application.DoEvents();
@@ -993,6 +1135,7 @@ namespace FacadeHelper
                             .ThenBy(e3 => Math.Round(e3.INF_OriginZ_Metric / Constants.RVTPrecision))
                             .ThenByDescending(e4 => Math.Round(e4.INF_OriginX_Metric / Constants.RVTPrecision));
                         break;
+
                     case "E":
                         listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}@{layergroup.Key}, Y+, Z+...");
                         System.Windows.Forms.Application.DoEvents();
@@ -1002,6 +1145,7 @@ namespace FacadeHelper
                             .ThenBy(e3 => Math.Round(e3.INF_OriginZ_Metric / Constants.RVTPrecision))
                             .ThenBy(e4 => Math.Round(e4.INF_OriginY_Metric / Constants.RVTPrecision));
                         break;
+
                     case "W":
                         listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}@{layergroup.Key}, Y-, Z+...");
                         System.Windows.Forms.Application.DoEvents();
@@ -1011,13 +1155,17 @@ namespace FacadeHelper
                             .ThenBy(e3 => Math.Round(e3.INF_OriginZ_Metric / Constants.RVTPrecision))
                             .ThenByDescending(e4 => Math.Round(e4.INF_OriginY_Metric / Constants.RVTPrecision));
                         break;
+
                     default:
                         break;
                 }
-                #endregion
+
+                #endregion 明细构件 排序
 
                 listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - CODE: Z/{zone.ZoneCode}@{layergroup.Key}, E/{_sesinzone[layergroup.Key].Count()}...");
+
                 #region 確定嵌板內明細構件數據
+
                 int eindexinzone = 0;
                 var zlayer = _layersinzone.FirstOrDefault(l => l.ZoneLayer == layergroup.Key);
                 zlayer.ZoneDays = (zlayer.ZoneFinish - zlayer.ZoneStart).Days + 1;
@@ -1034,18 +1182,19 @@ namespace FacadeHelper
                     txt_curr_op.Content = "W/TASK";
                     progbar_curr.Value++;
                     System.Windows.Forms.Application.DoEvents();
-
                 }
-                #endregion
+
+                #endregion 確定嵌板內明細構件數據
             }
-
-
         }
 
         public static void FnResolveZone(UIDocument uidoc, ZoneInfoBase zone, ref Label txt_curr_ele, ref Label txt_curr_op, ref ProgressBar progbar_curr, ref ListBox listinfo)
         {
             var doc = uidoc.Document;
-            uidoc.Selection.Elements.Clear();
+            var elements = uidoc.Selection.GetElementIds()
+                        .Select(id => doc.GetElement(id))
+                        .ToList();
+            elements.Clear();
 
             IOrderedEnumerable<CurtainPanelInfo> _p_in_zone = null;
             IOrderedEnumerable<ScheduleElementInfo>[] _s_e_in_zone = new IOrderedEnumerable<ScheduleElementInfo>[3];
@@ -1055,6 +1204,7 @@ namespace FacadeHelper
             System.Windows.Forms.Application.DoEvents();
 
             #region CurtainPanelList 排序
+
             switch (zone.ZoneDirection)
             {
                 case "S":
@@ -1065,6 +1215,7 @@ namespace FacadeHelper
                         .OrderBy(p1 => Math.Round(p1.INF_OriginZ_Metric / Constants.RVTPrecision))
                         .ThenBy(p2 => Math.Round(p2.INF_OriginX_Metric / Constants.RVTPrecision));
                     break;
+
                 case "N":
                     listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}/P, X-, Z+...");
                     System.Windows.Forms.Application.DoEvents();
@@ -1073,6 +1224,7 @@ namespace FacadeHelper
                         .OrderBy(p1 => Math.Round(p1.INF_OriginZ_Metric / Constants.RVTPrecision))
                         .ThenByDescending(p2 => Math.Round(p2.INF_OriginX_Metric / Constants.RVTPrecision));
                     break;
+
                 case "E":
                     listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}/P, Y+, Z+...");
                     System.Windows.Forms.Application.DoEvents();
@@ -1081,6 +1233,7 @@ namespace FacadeHelper
                         .OrderBy(p1 => Math.Round(p1.INF_OriginZ_Metric / Constants.RVTPrecision))
                         .ThenBy(p2 => Math.Round(p2.INF_OriginY_Metric / Constants.RVTPrecision));
                     break;
+
                 case "W":
                     listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}/P, Y-, Z+...");
                     System.Windows.Forms.Application.DoEvents();
@@ -1089,15 +1242,19 @@ namespace FacadeHelper
                         .OrderBy(p1 => Math.Round(p1.INF_OriginZ_Metric / Constants.RVTPrecision))
                         .ThenByDescending(p2 => Math.Round(p2.INF_OriginY_Metric / Constants.RVTPrecision));
                     break;
+
                 default: break;
             }
-            #endregion
+
+            #endregion CurtainPanelList 排序
 
             progbar_curr.Maximum = _p_in_zone.Count();
             progbar_curr.Value = 0;
 
             listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - CODE: Z/{zone.ZoneCode}/P.");
+
             #region 確定分區內嵌板數據及排序
+
             int pindex = 0;
             foreach (CurtainPanelInfo _pi in _p_in_zone)
             {
@@ -1109,7 +1266,8 @@ namespace FacadeHelper
                 _pi.INF_Index = ++pindex;
                 _pi.INF_Code = $"CW-{_pi.INF_Type:00}-{_pi.INF_Level:00}-{_pi.INF_Direction}{_pi.INF_System}{_pi.INF_ZoneIndex:0}-{pindex:0000}";
             }
-            #endregion
+
+            #endregion 確定分區內嵌板數據及排序
 
             var _layersinzone = Global.ZoneLayerList.Where(zs => zs.ZoneCode.Equals(zone.ZoneCode, StringComparison.CurrentCultureIgnoreCase));
 
@@ -1120,6 +1278,7 @@ namespace FacadeHelper
             foreach (var s_e_group_in_tasklayer in ScheduleElementsGroupByTaskLayer)
             {
                 #region 明细构件 排序
+
                 switch (zone.ZoneDirection)
                 {
                     case "S":
@@ -1131,6 +1290,7 @@ namespace FacadeHelper
                             .ThenBy(e3 => Math.Round(e3.INF_OriginZ_Metric / Constants.RVTPrecision))
                             .ThenBy(e4 => Math.Round(e4.INF_OriginX_Metric / Constants.RVTPrecision));
                         break;
+
                     case "N":
                         listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}@{s_e_group_in_tasklayer.Key}, X-, Z+...");
                         System.Windows.Forms.Application.DoEvents();
@@ -1140,6 +1300,7 @@ namespace FacadeHelper
                             .ThenBy(e3 => Math.Round(e3.INF_OriginZ_Metric / Constants.RVTPrecision))
                             .ThenByDescending(e4 => Math.Round(e4.INF_OriginX_Metric / Constants.RVTPrecision));
                         break;
+
                     case "E":
                         listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}@{s_e_group_in_tasklayer.Key}, Y+, Z+...");
                         System.Windows.Forms.Application.DoEvents();
@@ -1149,6 +1310,7 @@ namespace FacadeHelper
                             .ThenBy(e3 => Math.Round(e3.INF_OriginZ_Metric / Constants.RVTPrecision))
                             .ThenBy(e4 => Math.Round(e4.INF_OriginY_Metric / Constants.RVTPrecision));
                         break;
+
                     case "W":
                         listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - SORT: Z/{zone.ZoneCode}@{s_e_group_in_tasklayer.Key}, Y-, Z+...");
                         System.Windows.Forms.Application.DoEvents();
@@ -1158,13 +1320,17 @@ namespace FacadeHelper
                             .ThenBy(e3 => Math.Round(e3.INF_OriginZ_Metric / Constants.RVTPrecision))
                             .ThenByDescending(e4 => Math.Round(e4.INF_OriginY_Metric / Constants.RVTPrecision));
                         break;
+
                     default:
                         break;
                 }
-                #endregion
+
+                #endregion 明细构件 排序
 
                 listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - CODE: Z/{zone.ZoneCode}@{s_e_group_in_tasklayer.Key}, E/{_s_e_in_zone[s_e_group_in_tasklayer.Key].Count()}...");
+
                 #region 確定嵌板內明細構件數據
+
                 int taskindexinzone = 0;
                 var zlayer = _layersinzone.FirstOrDefault(l => l.ZoneLayer == s_e_group_in_tasklayer.Key); // 读入匹配的TaskLayer的Task数据
                 zlayer.ZoneDays = (zlayer.ZoneFinish - zlayer.ZoneStart).Days + 1;
@@ -1182,11 +1348,11 @@ namespace FacadeHelper
                     System.Windows.Forms.Application.DoEvents();
                 }
 
-                #endregion
+                #endregion 確定嵌板內明細構件數據
             }
 
-
             #region 按构件类型分组排序编码
+
             Global.ElementIndexRangeList = FnElementIndexRangeDeserialize();
             var ilookup_se_type = Global.DocContent.ScheduleElementList
                 .Where(ele => ele.INF_ZoneCode.Equals(zone.ZoneCode, StringComparison.CurrentCultureIgnoreCase))
@@ -1204,14 +1370,19 @@ namespace FacadeHelper
                 Global.UpdateElementIndexRange(zone.ZoneCode, ig_se.Key, eindex);
             }
             FnElementIndexRangeSerialize(Global.ElementIndexRangeList);
-            #endregion
+
+            #endregion 按构件类型分组排序编码
         }
 
+        #endregion 4D设计分区，嵌板和构件分析
 
-        #endregion
         public static void FnContentSerialize()
         {
-            if (File.Exists(Global.DataFile)) File.Delete(Global.DataFile);
+            if (File.Exists(Global.DataFile))
+            {
+                File.Delete(Global.DataFile);
+            }
+
             using (FileStream fs = new FileStream(Global.DataFile, FileMode.Create))
             {
                 Serializer.Serialize(fs, Global.DocContent);
@@ -1229,7 +1400,13 @@ namespace FacadeHelper
             }
         }
 
-        public static void FnContentBackup() { if (File.Exists(Global.DataFile)) File.Move(Global.DataFile, $"{Global.DataFile}.{DateTime.Now:yyyyMMddHHmmss}.bak"); }
+        public static void FnContentBackup()
+        {
+            if (File.Exists(Global.DataFile))
+            {
+                File.Move(Global.DataFile, $"{Global.DataFile}.{DateTime.Now:yyyyMMddHHmmss}.bak");
+            }
+        }
 
         public static void FnContentSerializeWithBackup()
         {
@@ -1240,10 +1417,18 @@ namespace FacadeHelper
             }
 
             var pwfile = $"{Global.DataFile}.pw.xml";
-            if (File.Exists(pwfile)) File.Delete(pwfile);
+            if (File.Exists(pwfile))
+            {
+                File.Delete(pwfile);
+            }
+
             XMLDeserializerHelper.Serialization<List<CurtainPanelInfo>>(Global.DocContent.CurtainPanelList, pwfile);
             var elefile = $"{Global.DataFile}.ele.xml";
-            if (File.Exists(pwfile)) File.Delete(elefile);
+            if (File.Exists(pwfile))
+            {
+                File.Delete(elefile);
+            }
+
             XMLDeserializerHelper.Serialization<List<ScheduleElementInfo>>(Global.DocContent.ScheduleElementList, elefile);
         }
 
@@ -1259,11 +1444,14 @@ namespace FacadeHelper
         public static void AddEx<T>(this ObservableCollection<T> SourceList, T NewItem) where T : ZoneInfoBase
         {
             foreach (ZoneInfoBase z in SourceList)
+            {
                 if (z.ZoneCode == NewItem.ZoneCode)
                 {
                     SourceList.Remove((T)z);
                     break;
                 }
+            }
+
             SourceList.Add(NewItem);
             return;
         }
@@ -1272,7 +1460,11 @@ namespace FacadeHelper
         {
             int num_days = Convert.ToInt32(Math.Floor(durationhours / Global.OptionHoursPerDay));
             double rest_hours = durationhours - num_days * Global.OptionHoursPerDay;
-            if (rest_hours > 4) rest_hours++;
+            if (rest_hours > 4)
+            {
+                rest_hours++;
+            }
+
             return (timestart + new TimeSpan(num_days, 0, 0, 0)).AddHours(8 + rest_hours);
         }
     }
@@ -1316,7 +1508,7 @@ namespace FacadeHelper
                 XmlSerializer serializer = new XmlSerializer(typeof(T));
                 try
                 {
-                    //Do deserialize 
+                    //Do deserialize
                     //return (T)serializer.Deserialize(stream);
                     return (T)serializer.Deserialize(xreader);
                 }
@@ -1359,7 +1551,6 @@ namespace FacadeHelper
             MemoryStream ms = new MemoryStream();
             try
             {
-
                 //create a stream which write data to xml document.
                 writer = XmlWriter.Create(outPutFilePath, new XmlWriterSettings
                 {
@@ -1386,7 +1577,6 @@ namespace FacadeHelper
             {
                 //Serializate the object
                 serializer.Serialize(writer, obj, nameSpace);
-
             }
             //if some error occured,throw it
             catch (InvalidOperationException error)
@@ -1413,7 +1603,6 @@ namespace FacadeHelper
             MemoryStream ms = new MemoryStream();
             try
             {
-
                 //create a stream which write data to xml document.
                 writer = XmlWriter.Create(ms, new XmlWriterSettings
                 {
@@ -1520,6 +1709,7 @@ namespace FacadeHelper
                 Height = 30
             };
         }
+
         public Geometry Data { get { return (Geometry)GetValue(DataProperty); } set { SetValue(DataProperty, value); } }
     }
 
@@ -1536,9 +1726,15 @@ namespace FacadeHelper
         //重写两个方法，添加过滤条件
         public class MassSelectionFilter : ISelectionFilter
         {
-            public bool AllowElement(Element element) { return element.Category.Name == "Mass" ? true : false; }
-            public bool AllowReference(Reference refer, XYZ point) { return false; }
+            public bool AllowElement(Element element)
+            {
+                return element.Category.Name == "Mass" ? true : false;
+            }
+
+            public bool AllowReference(Reference refer, XYZ point)
+            {
+                return false;
+            }
         }
     }
-
 }

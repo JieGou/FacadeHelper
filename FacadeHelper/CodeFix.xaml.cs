@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -14,8 +16,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Autodesk.Revit.DB;
-using Autodesk.Revit.UI;
 
 namespace FacadeHelper
 {
@@ -25,7 +25,9 @@ namespace FacadeHelper
     public partial class CodeFix : UserControl
     {
         public Window ParentWin { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
+
         protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         private readonly UIApplication _uiapp;
@@ -36,7 +38,6 @@ namespace FacadeHelper
         private ObservableCollection<Element> _currentCswCollection = new ObservableCollection<Element>();
         public ObservableCollection<Element> CurrentCswCollection { get => _currentCswCollection; set { _currentCswCollection = value; OnPropertyChanged(nameof(CurrentCswCollection)); } }
 
-
         public CodeFix(ExternalCommandData commandData)
         {
             InitializeComponent();
@@ -45,16 +46,18 @@ namespace FacadeHelper
             _uiapp = commandData.Application;
             _uidoc = _uiapp.ActiveUIDocument;
             _doc = _uidoc.Document;
-            _sids = _uidoc.Selection.Elements.Cast<Element>().Select(e => e.Id).ToList<ElementId>();
+            //_sids = _uidoc.Selection.Elements.Cast<Element>().Select(e => e.Id).ToList<ElementId>();
+            _sids = _uidoc.Selection.GetElementIds().ToList<ElementId>();
 
             //CS/W 统计
             var cswcollection = new FilteredElementCollector(_doc).WherePasses(new LogicalAndFilter(new ElementClassFilter(typeof(FamilyInstance)), new ElementCategoryFilter(BuiltInCategory.OST_Walls)))
                 .Union(new FilteredElementCollector(_doc).WherePasses(new LogicalAndFilter(new ElementClassFilter(typeof(FamilyInstance)), new ElementCategoryFilter(BuiltInCategory.OST_Curtain_Systems))));
-            foreach (var csw in cswcollection) CurrentCswCollection.Add(csw);
-
+            foreach (var csw in cswcollection)
+            {
+                CurrentCswCollection.Add(csw);
+            }
 
             InitializeCommand();
-
         }
 
         private void InitializeCommand()

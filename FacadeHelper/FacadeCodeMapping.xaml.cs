@@ -30,7 +30,9 @@ namespace FacadeHelper
     public partial class FacadeCodeMapping : UserControl, INotifyPropertyChanged
     {
         public Window ParentWin { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
+
         protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         private int _currentSelectedType = 1;
@@ -59,6 +61,7 @@ namespace FacadeHelper
         public List<string> ZoneListSource { get { return _zoneListSource; } set { _zoneListSource = value; OnPropertyChanged(nameof(ZoneListSource)); } }
 
         private ObservableCollection<ElementFabricationInfo> _currentFabricationList = new ObservableCollection<ElementFabricationInfo>();
+
         public ObservableCollection<ElementFabricationInfo> CurrentFabricationList
         {
             get { return _currentFabricationList; }
@@ -70,6 +73,7 @@ namespace FacadeHelper
                 OnPropertyChanged(nameof(CurrentFabricationList_OrderCode));
             }
         }
+
         public ICollectionView CurrentFabricationList_ViewElementCode { get { return CollectionViewSource.GetDefaultView(CurrentFabricationList); } }
         public ICollectionView CurrentFabricationList_ViewOrderCode { get { return CollectionViewSource.GetDefaultView(CurrentFabricationList); } }
         public ObservableCollection<string> CurrentFabricationList_ElementCode { get { return new ObservableCollection<string>(CurrentFabricationList.Select(f => f.ElementCode).Distinct()); } }
@@ -84,7 +88,8 @@ namespace FacadeHelper
             _uiapp = commandData.Application;
             _uidoc = _uiapp.ActiveUIDocument;
             _doc = _uidoc.Document;
-            _sids = _uidoc.Selection.Elements.Cast<Element>().Select(e => e.Id).ToList<ElementId>();
+            //_sids = _uidoc.Selection.Elements.Cast<Element>().Select(e => e.Id).ToList<ElementId>();
+            _sids = _uidoc.Selection.GetElementIds().ToList<ElementId>();
 
             /**
             if (Global.ZoneLayerList.Count == 0) Global.ZoneLayerList = ZoneHelper.FnZoneDataDeserialize();
@@ -97,28 +102,39 @@ namespace FacadeHelper
             Parameter _parameter_zone;
             foreach (var pw in pwlist)
             {
-                _parameter_zone = pw.get_Parameter("分区区号");
+                _parameter_zone = pw.LookupParameter("分区区号");
                 if (_parameter_zone?.HasValue == true)
                 {
                     string _zone = _parameter_zone?.AsString();
-                    if (!ZoneListSource.Contains(_zone)) ZoneListSource.Add(_zone);
+                    if (!ZoneListSource.Contains(_zone))
+                    {
+                        ZoneListSource.Add(_zone);
+                    }
                 }
             }
 
-            if (CurrentZoneList.Count == 0) ZoneListSource.ForEach(z => CurrentZoneList.Add(z));
+            if (CurrentZoneList.Count == 0)
+            {
+                ZoneListSource.ForEach(z => CurrentZoneList.Add(z));
+            }
 
             ParamValueList.Items.Clear();
             var mru = Global.GetAppConfig("ParamValueMRU")?.Split('|');
-            if (mru != null) foreach (string v in mru) ParamValueList.Items.Add(v);
+            if (mru != null)
+            {
+                foreach (string v in mru)
+                {
+                    ParamValueList.Items.Add(v);
+                }
+            }
 
             InitializeCommand();
-
-
         }
 
         private void FuncProcessPreSelection()
         {
             #region Selection 预筛选
+
             LogicalAndFilter GM_InstancesFilter = new LogicalAndFilter(new ElementClassFilter(typeof(FamilyInstance)), new ElementCategoryFilter(BuiltInCategory.OST_GenericModel));
             LogicalAndFilter P_InstancesFilter = new LogicalAndFilter(new ElementClassFilter(typeof(FamilyInstance)), new ElementCategoryFilter(BuiltInCategory.OST_CurtainWallPanels));
             LogicalAndFilter W_InstancesFilter = new LogicalAndFilter(new ElementClassFilter(typeof(FamilyInstance)), new ElementCategoryFilter(BuiltInCategory.OST_Windows));
@@ -140,16 +156,25 @@ namespace FacadeHelper
                         listselected.Add(e);
                     }
                 }
-                foreach (Element ele in pwlist) listselected.AddRange((ele as FamilyInstance).GetSubComponentIds().Select(pwid => _doc.GetElement(pwid)));
+                foreach (Element ele in pwlist)
+                {
+                    listselected.AddRange((ele as FamilyInstance).GetSubComponentIds().Select(pwid => _doc.GetElement(pwid)));
+                }
             }
             else
             {
                 listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - SELECT: ELE/{_sids.Count}.");
                 var pwlist = new FilteredElementCollector(_doc, _sids).WherePasses(P_InstancesFilter).Union((new FilteredElementCollector(_doc, _sids)).WherePasses(W_InstancesFilter));
-                foreach (Element ele in pwlist) listselected.AddRange((ele as FamilyInstance).GetSubComponentIds().Select(pwid => _doc.GetElement(pwid)));
+                foreach (Element ele in pwlist)
+                {
+                    listselected.AddRange((ele as FamilyInstance).GetSubComponentIds().Select(pwid => _doc.GetElement(pwid)));
+                }
             }
 
-            _uidoc.Selection.Elements.Clear();
+            var elements = _uidoc.Selection.GetElementIds()
+                .Select(id => _doc.GetElement(id))
+                .ToList();
+            elements.Clear();
             Parameter _parameter_type;
             Parameter _parameter_zone;
             int _i = 0;
@@ -160,26 +185,26 @@ namespace FacadeHelper
                 barStatusRefreshList1.Value = v * 100;
                 System.Windows.Forms.Application.DoEvents();
 
-                _parameter_type = ele.get_Parameter("分项");
-                _parameter_zone = ele.get_Parameter("分区区号");
+                _parameter_type = ele.LookupParameter("分项");
+                _parameter_zone = ele.LookupParameter("分区区号");
                 if (_parameter_type?.HasValue == true && _parameter_zone?.HasValue == true && int.TryParse(_parameter_type?.AsString(), out int _type))
                 {
                     string _zone = _parameter_zone?.AsString();
                     if (_type == CurrentSelectedType && CurrentZoneList.Contains(_zone.ToUpper()))
                     {
-                        _uidoc.Selection.Elements.Add(ele);
+                        elements.Add(ele);
                         CurrentElementList.Add(ele);
                         ScheduleElementInfo ei = new ScheduleElementInfo()
                         {
                             INF_ElementId = ele.Id.IntegerValue,
                             INF_Name = ele.Name,
                             INF_Type = CurrentSelectedType,
-                            INF_Index = ele.get_Parameter("分区序号")?.AsInteger() ?? 0,
-                            INF_Direction = ele.get_Parameter("立面朝向")?.AsString() ?? "",
-                            INF_System = ele.get_Parameter("立面系统")?.AsString() ?? "",
-                            INF_Level = ele.get_Parameter("立面楼层")?.AsInteger() ?? 0,
-                            INF_ZoneCode = ele.get_Parameter("分区区号")?.AsString() ?? "",
-                            INF_Code = ele.get_Parameter("分区编码")?.AsString() ?? ele.Id.ToString()
+                            INF_Index = ele.LookupParameter("分区序号")?.AsInteger() ?? 0,
+                            INF_Direction = ele.LookupParameter("立面朝向")?.AsString() ?? "",
+                            INF_System = ele.LookupParameter("立面系统")?.AsString() ?? "",
+                            INF_Level = ele.LookupParameter("立面楼层")?.AsInteger() ?? 0,
+                            INF_ZoneCode = ele.LookupParameter("分区区号")?.AsString() ?? "",
+                            INF_Code = ele.LookupParameter("分区编码")?.AsString() ?? ele.Id.ToString()
                         };
                         CurrentElementInfoList.Add(ei);
                     }
@@ -188,9 +213,9 @@ namespace FacadeHelper
 
             lblStatus1.Content = string.Format("{0:F2}%", 100);
             barStatusRefreshList1.Value = 100;
-            listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - FILTERED: ELE/{_uidoc.Selection.Elements.Size}/{CurrentElementList.Count}.");
-            #endregion
+            listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - FILTERED: ELE/{elements.Count}/{CurrentElementList.Count}.");
 
+            #endregion Selection 预筛选
 
             return;
         }
@@ -235,7 +260,7 @@ namespace FacadeHelper
                         System.Windows.Forms.Application.DoEvents();
 
                         ele = _doc.GetElement(new ElementId(ei.INF_ElementId));
-                        Parameter pa = ele.get_Parameter((string)ParamNameList.SelectedValue);
+                        Parameter pa = ele.LookupParameter((string)ParamNameList.SelectedValue);
                         if (pa == null)
                         {
                             MessageBox.Show($"构件[{ei.INF_ElementId}]/[{ei.INF_Code}]中参数【{(string)ParamNameList.SelectedValue}】不存在", "Error", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK);
@@ -246,6 +271,7 @@ namespace FacadeHelper
                             case StorageType.String:
                                 pa.Set((string)ParamValueList.Text);
                                 break;
+
                             case StorageType.Integer:
                                 if (!int.TryParse((string)ParamValueList.Text, out int i))
                                 {
@@ -254,6 +280,7 @@ namespace FacadeHelper
                                 }
                                 pa.Set(i);
                                 break;
+
                             case StorageType.Double:
                                 if (!double.TryParse((string)ParamValueList.Text, out double d))
                                 {
@@ -262,6 +289,7 @@ namespace FacadeHelper
                                 }
                                 pa.Set(d);
                                 break;
+
                             default:
                                 MessageBox.Show($"构件[{ei.INF_ElementId}]/[{ei.INF_Code}]中参数【{(string)ParamNameList.SelectedValue}】类型可能有误", "Error", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK);
                                 break;
@@ -273,9 +301,12 @@ namespace FacadeHelper
                     barStatusApplyParams.Value = 100;
                 }
 
-                if (!ParamValueList.Items.Contains(ParamValueList.Text)) ParamValueList.Items.Add(ParamValueList.Text);
-                Global.UpdateAppConfig("ParamValueMRU", string.Join("|", ParamValueList.Items.Cast<string>()));
+                if (!ParamValueList.Items.Contains(ParamValueList.Text))
+                {
+                    ParamValueList.Items.Add(ParamValueList.Text);
+                }
 
+                Global.UpdateAppConfig("ParamValueMRU", string.Join("|", ParamValueList.Items.Cast<string>()));
             }, (sender, e) =>
             {
                 if (ParamNameList.SelectedIndex >= 0)
@@ -287,7 +318,6 @@ namespace FacadeHelper
 
             CommandBinding cbApplyGridValue = new CommandBinding(_cmdApplyGridValue, (sender, e) =>
             {
-
             }, (sender, e) =>
             {
                 if (ParamNameList.SelectedIndex >= 0)
@@ -300,10 +330,18 @@ namespace FacadeHelper
             CommandBinding cbZPopApply = new CommandBinding(_cmdZPopApply, (sender, e) =>
             {
                 CurrentZoneList.Clear();
-                if (LstZone.SelectedIndex != -1) foreach (var z in LstZone.SelectedItems) CurrentZoneList.Add((string)z);
+                if (LstZone.SelectedIndex != -1)
+                {
+                    foreach (var z in LstZone.SelectedItems)
+                    {
+                        CurrentZoneList.Add((string)z);
+                    }
+                }
 
                 if (LstZone.SelectedItems.Count == ZoneListSource.Count)
+                {
                     txtSelectedZoneList.Content = "所有分区";
+                }
                 else if (LstZone.SelectedItems.Count == 0)
                 {
                     LstZone.SelectAll();
@@ -311,8 +349,9 @@ namespace FacadeHelper
                     txtSelectedZoneList.Content = "所有分区";
                 }
                 else
+                {
                     txtSelectedZoneList.Content = string.Join(", ", CurrentZoneList.ToArray());
-
+                }
 
                 bnAddZone.IsChecked = false;
             }, (sender, e) => { e.CanExecute = true; e.Handled = true; });
@@ -325,6 +364,7 @@ namespace FacadeHelper
                     .WherePasses(new LogicalAndFilter(new ElementClassFilter(typeof(FamilyInstance)), new ElementCategoryFilter(BuiltInCategory.OST_Windows))));
 
                 #region 设置分区区号参数
+
                 using (Transaction trans = new Transaction(_doc, "CreateZoneParameter"))
                 {
                     trans.Start();
@@ -342,22 +382,36 @@ namespace FacadeHelper
                     Parameter _parameter_zone;
                     foreach (var pw in pwlist)
                     {
-                        _parameter_zone = pw.get_Parameter("分区区号");
-                        if (_parameter_zone?.HasValue == false) _parameter_zone.Set("Z-00-00-00-00");
+                        _parameter_zone = pw.LookupParameter("分区区号");
+                        if (_parameter_zone?.HasValue == false)
+                        {
+                            _parameter_zone.Set("Z-00-00-00-00");
+                        }
+
                         var eles = (pw as FamilyInstance).GetSubComponentIds().Select(eid => _doc.GetElement(eid));
                         foreach (var ele in eles)
                         {
-                            _parameter_zone = ele.get_Parameter("分区区号");
-                            if (_parameter_zone?.HasValue == false) _parameter_zone.Set("Z-00-00-00-00");
+                            _parameter_zone = ele.LookupParameter("分区区号");
+                            if (_parameter_zone?.HasValue == false)
+                            {
+                                _parameter_zone.Set("Z-00-00-00-00");
+                            }
                         }
                     }
                     trans.Commit();
                 }
 
-                if (!ZoneListSource.Contains("Z-00-00-00-00")) ZoneListSource.Add("Z-00-00-00-00");
-                if (!CurrentZoneList.Contains("Z-00-00-00-00")) CurrentZoneList.Add("Z-00-00-00-00");
+                if (!ZoneListSource.Contains("Z-00-00-00-00"))
+                {
+                    ZoneListSource.Add("Z-00-00-00-00");
+                }
 
-                #endregion
+                if (!CurrentZoneList.Contains("Z-00-00-00-00"))
+                {
+                    CurrentZoneList.Add("Z-00-00-00-00");
+                }
+
+                #endregion 设置分区区号参数
             }, (sender, e) => { e.CanExecute = true; e.Handled = true; });
 
             CommandBinding cbLoadOrder = new CommandBinding(_cmdLoadOrder, (sender, e) =>
@@ -383,9 +437,15 @@ namespace FacadeHelper
                             while ((dataline = reader.ReadLine()) != null)
                             {
                                 string[] rowdata = dataline.Split(',');
-                                if (dataline.Contains("文件编号")) _oc = Regex.Match(dataline, "文件编号:(.*?),").Groups[1].Value;
+                                if (dataline.Contains("文件编号"))
+                                {
+                                    _oc = Regex.Match(dataline, "文件编号:(.*?),").Groups[1].Value;
+                                }
+
                                 if (int.TryParse(rowdata[0], out int _oid) && int.TryParse(rowdata[10], out int _qty) && rowdata[1] != "")
+                                {
                                     CurrentFabricationList.Add(new ElementFabricationInfo() { ElementCode = rowdata[1], FabrQuantity = _qty, OrderCode = _oc });
+                                }
                             }
                         }
                     }
@@ -413,8 +473,8 @@ namespace FacadeHelper
 
                         ele = _doc.GetElement(new ElementId(ei.INF_ElementId));
                         var item = Lst2.SelectedItem;
-                        ele.get_Parameter("加工编号")?.Set((string)item.GetType().GetProperty("ECode").GetValue(item, null));
-                        ele.get_Parameter("材料单号")?.Set(Lst3.SelectedValue as string);
+                        ele.LookupParameter("加工编号")?.Set((string)item.GetType().GetProperty("ECode").GetValue(item, null));
+                        ele.LookupParameter("材料单号")?.Set(Lst3.SelectedValue as string);
                     }
                     listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - MAP: ELE/{Lst1.SelectedItems.Count}.");
                     trans.Commit();
@@ -461,10 +521,14 @@ namespace FacadeHelper
         private void FuncApplySelection()
         {
             #region Selection 确定选择
+
             AppliedElementInfoList.Clear();
             ParamListSource.Clear();
             List<Element> listappliedselection = new List<Element>();
-            _uidoc.Selection.Elements.Clear();
+            var elements = _uidoc.Selection.GetElementIds()
+                        .Select(id => _doc.GetElement(id))
+                        .ToList();
+            elements.Clear();
 
             //初始化列表选择项数据
             int isel = 0;
@@ -478,9 +542,16 @@ namespace FacadeHelper
                 AppliedElementInfoList.Add(ei);
                 Element ele = _doc.GetElement(new ElementId(ei.INF_ElementId));
                 ParameterSet parameters = ele.Parameters;
-                foreach (Parameter parameter in parameters) if (!parameter.IsReadOnly) ParamListSource.Add(parameter.Definition.Name);
+                foreach (Parameter parameter in parameters)
+                {
+                    if (!parameter.IsReadOnly)
+                    {
+                        ParamListSource.Add(parameter.Definition.Name);
+                    }
+                }
+
                 listappliedselection.Add(ele);
-                _uidoc.Selection.Elements.Add(ele);
+                elements.Add(ele);
             }
 
             //清理重复参数
@@ -490,17 +561,19 @@ namespace FacadeHelper
 
             lblStatusSelection.Content = $"{100:F0}%";
             barStatusSelection.Value = 100;
-            listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - SELECTED: ELE/{_uidoc.Selection.Elements.Size}/{CurrentElementList.Count}.");
-            #endregion
+            listInformation.SelectedIndex = listInformation.Items.Add($"{DateTime.Now:HH:mm:ss} - SELECTED: ELE/{elements.Count}/{CurrentElementList.Count}.");
+
+            #endregion Selection 确定选择
         }
 
-        private void listInformation_SelectionChanged(object sender, SelectionChangedEventArgs e) { var lb = sender as ListBox; lb.ScrollIntoView(lb.Items[lb.Items.Count - 1]); }
+        private void listInformation_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var lb = sender as ListBox; lb.ScrollIntoView(lb.Items[lb.Items.Count - 1]);
+        }
 
         private void chkbox_Checked(object sender, RoutedEventArgs e)
         {
-
             ((CheckBox)sender).GetBindingExpression(System.Windows.Controls.Primitives.ToggleButton.IsCheckedProperty)?.UpdateTarget();
         }
-
     }
 }
