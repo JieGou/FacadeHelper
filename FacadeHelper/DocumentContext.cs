@@ -63,7 +63,6 @@ namespace FacadeHelper
                 .HasKey(m => m.INF_ElementId);
             mb.Entity<LevelInfo>()
                 .Property(m => m.INF_LevelSign).IsRequired().HasMaxLength(8);
-
         }
     }
     **/
@@ -98,6 +97,7 @@ namespace FacadeHelper
 
         //public SQLContext CurrentDBContext;
         public event PropertyChangedEventHandler PropertyChanged;
+
         protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public DocumentContent()
@@ -119,15 +119,30 @@ namespace FacadeHelper
     [SerializableType]
     public class ZoneLayerInfo
     {
-        [XmlAttribute] public string HandleId { get; set; }
-        [XmlAttribute] public string ZoneCode { get; set; }
-        [XmlAttribute] public int ZoneLayer { get; set; }
-        [XmlAttribute] public DateTime ZoneStart { get; set; }
-        [XmlAttribute] public DateTime ZoneFinish { get; set; }
-        [XmlAttribute] public int ZoneDays { get; set; }
-        [XmlAttribute] public int ZoneHours { get; set; }
+        [XmlAttribute]
+        public string HandleId { get; set; }
 
-        public ZoneLayerInfo() { }
+        [XmlAttribute]
+        public string ZoneCode { get; set; }
+
+        [XmlAttribute]
+        public int ZoneLayer { get; set; }
+
+        [XmlAttribute]
+        public DateTime ZoneStart { get; set; }
+
+        [XmlAttribute]
+        public DateTime ZoneFinish { get; set; }
+
+        [XmlAttribute]
+        public int ZoneDays { get; set; }
+
+        [XmlAttribute]
+        public int ZoneHours { get; set; }
+
+        public ZoneLayerInfo()
+        {
+        }
     }
 
     [SerializableType]
@@ -149,11 +164,75 @@ namespace FacadeHelper
         private int _eTaskLayer = -1;
         private int _eTaskSubLayer = -1;
 
-        [XmlAttribute] public int EClassIndex { get { return _eClassIndex; } set { _eClassIndex = value; OnPropertyChanged(nameof(EClassIndex)); } }
-        [XmlAttribute] public string EClassName { get { return _eClassName; } set { _eClassName = value; OnPropertyChanged(nameof(EClassName)); } }
-        [XmlAttribute] public bool IsScheduled { get { return _isScheduled; } set { _isScheduled = value; OnPropertyChanged(nameof(IsScheduled)); } }
-        [XmlAttribute] public int ETaskLayer { get { return _eTaskLayer; } set { _eTaskLayer = value; OnPropertyChanged(nameof(ETaskLayer)); } }
-        [XmlAttribute] public int ETaskSubLayer { get { return _eTaskSubLayer; } set { _eTaskSubLayer = value; OnPropertyChanged(nameof(ETaskSubLayer)); } }
+        [XmlAttribute]
+        public int EClassIndex
+        {
+            get
+            {
+                return _eClassIndex;
+            }
+            set
+            {
+                _eClassIndex = value;
+                OnPropertyChanged(nameof(EClassIndex));
+            }
+        }
+
+        [XmlAttribute]
+        public string EClassName
+        {
+            get
+            {
+                return _eClassName;
+            }
+            set
+            {
+                _eClassName = value;
+                OnPropertyChanged(nameof(EClassName));
+            }
+        }
+
+        [XmlAttribute]
+        public bool IsScheduled
+        {
+            get
+            {
+                return _isScheduled;
+            }
+            set
+            {
+                _isScheduled = value;
+                OnPropertyChanged(nameof(IsScheduled));
+            }
+        }
+
+        [XmlAttribute]
+        public int ETaskLayer
+        {
+            get
+            {
+                return _eTaskLayer;
+            }
+            set
+            {
+                _eTaskLayer = value;
+                OnPropertyChanged(nameof(ETaskLayer));
+            }
+        }
+
+        [XmlAttribute]
+        public int ETaskSubLayer
+        {
+            get
+            {
+                return _eTaskSubLayer;
+            }
+            set
+            {
+                _eTaskSubLayer = value;
+                OnPropertyChanged(nameof(ETaskSubLayer));
+            }
+        }
 
         public ElementClass()
         {
@@ -164,7 +243,9 @@ namespace FacadeHelper
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     [Serializable, XmlRoot(Namespace = "", IsNullable = false)]
@@ -175,17 +256,73 @@ namespace FacadeHelper
         private int _elementType = 0;
         private int _indexMax = 0;
 
-        [XmlAttribute] public string ZoneCode { get { return _zoneCode; } set { _zoneCode = value; OnPropertyChanged(nameof(ZoneCode)); } }
-        [XmlAttribute] public int ElementType { get { return _elementType; } set { _elementType = value; OnPropertyChanged(nameof(ElementType)); } }
-        [XmlAttribute] public int IndexMax { get { return _indexMax; } set { _indexMax = value; OnPropertyChanged(nameof(IndexMax)); } }
+        [XmlAttribute]
+        public string ZoneCode
+        {
+            get
+            {
+                return _zoneCode;
+            }
+            set
+            {
+                _zoneCode = value;
+                OnPropertyChanged(nameof(ZoneCode));
+            }
+        }
 
-        public ElementIndexRange() { ZoneCode = "Unset"; ElementType = 0; IndexMax = 0; }
-        public ElementIndexRange(string zonecode) : this() { ZoneCode = zonecode; }
-        public ElementIndexRange(string zonecode, int etype) : this() { ZoneCode = zonecode; ElementType = etype; }
-        public ElementIndexRange(string zonecode, int etype, int max) : this() { ZoneCode = zonecode; ElementType = etype; IndexMax = max; }
+        [XmlAttribute]
+        public int ElementType
+        {
+            get
+            {
+                return _elementType;
+            }
+            set
+            {
+                _elementType = value;
+                OnPropertyChanged(nameof(ElementType));
+            }
+        }
+
+        [XmlAttribute]
+        public int IndexMax
+        {
+            get
+            {
+                return _indexMax;
+            }
+            set
+            {
+                _indexMax = value;
+                OnPropertyChanged(nameof(IndexMax));
+            }
+        }
+
+        public ElementIndexRange()
+        {
+            ZoneCode = "Unset";
+            ElementType = 0; IndexMax = 0;
+        }
+
+        public ElementIndexRange(string zonecode) : this()
+        {
+            ZoneCode = zonecode;
+        }
+
+        public ElementIndexRange(string zonecode, int etype) : this()
+        {
+            ZoneCode = zonecode; ElementType = etype;
+        }
+
+        public ElementIndexRange(string zonecode, int etype, int max) : this()
+        {
+            ZoneCode = zonecode; ElementType = etype; IndexMax = max;
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     [Serializable, XmlRoot(Namespace = "", IsNullable = false)]
@@ -198,14 +335,80 @@ namespace FacadeHelper
         private int _fabrQuantity = 0;
         private string _orderCode = string.Empty;
 
-        [XmlAttribute] public int ElementType { get { return _elementType; } set { _elementType = value; OnPropertyChanged(nameof(ElementType)); } }
-        [XmlAttribute] public string ElementCode { get { return _elementCode; } set { _elementCode = value; OnPropertyChanged(nameof(ElementCode)); } }
-        [XmlAttribute] public string FabrCode { get { return _fabrCode; } set { _fabrCode = value; OnPropertyChanged(nameof(FabrCode)); } }
-        [XmlAttribute] public int FabrQuantity { get { return _fabrQuantity; } set { _fabrQuantity = value; OnPropertyChanged(nameof(FabrQuantity)); } }
-        [XmlAttribute] public string OrderCode { get { return _orderCode; } set { _orderCode = value; OnPropertyChanged(nameof(OrderCode)); } }
+        [XmlAttribute]
+        public int ElementType
+        {
+            get
+            {
+                return _elementType;
+            }
+            set
+            {
+                _elementType = value;
+                OnPropertyChanged(nameof(ElementType));
+            }
+        }
+
+        [XmlAttribute]
+        public string ElementCode
+        {
+            get
+            {
+                return _elementCode;
+            }
+            set
+            {
+                _elementCode = value;
+                OnPropertyChanged(nameof(ElementCode));
+            }
+        }
+
+        [XmlAttribute]
+        public string FabrCode
+        {
+            get
+            {
+                return _fabrCode;
+            }
+            set
+            {
+                _fabrCode = value;
+                OnPropertyChanged(nameof(FabrCode));
+            }
+        }
+
+        [XmlAttribute]
+        public int FabrQuantity
+        {
+            get
+            {
+                return _fabrQuantity;
+            }
+            set
+            {
+                _fabrQuantity = value;
+                OnPropertyChanged(nameof(FabrQuantity));
+            }
+        }
+
+        [XmlAttribute]
+        public string OrderCode
+        {
+            get
+            {
+                return _orderCode;
+            }
+            set
+            {
+                _orderCode = value;
+                OnPropertyChanged(nameof(OrderCode));
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     public class Global
@@ -235,7 +438,11 @@ namespace FacadeHelper
                 }
             }
 
-            if (isModified) config.AppSettings.Settings.Remove(newKey);
+            if (isModified)
+            {
+                config.AppSettings.Settings.Remove(newKey);
+            }
+
             config.AppSettings.Settings.Add(newKey, newValue);
             config.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("appSettings");
@@ -264,17 +471,18 @@ namespace FacadeHelper
             }
             else
             {
-                return Global.ElementIndexRangeList.FirstOrDefault(r => r.ZoneCode.Equals(zonecode, StringComparison.CurrentCultureIgnoreCase) && r.ElementType == etype) ?? eir;
+                return Global.ElementIndexRangeList.FirstOrDefault(r =>
+                           r.ZoneCode.Equals(zonecode, StringComparison.CurrentCultureIgnoreCase)
+                           && r.ElementType == etype) ?? eir;
             }
         }
 
         public static void UpdateElementIndexRange(string zonecode, int etype, int max)
         {
-            Global.ElementIndexRangeList.RemoveAll(r => r.ZoneCode.Equals(zonecode, StringComparison.CurrentCultureIgnoreCase) && r.ElementType == etype);
+            Global.ElementIndexRangeList.RemoveAll(r =>
+                r.ZoneCode.Equals(zonecode, StringComparison.CurrentCultureIgnoreCase)
+                                                        && r.ElementType == etype);
             Global.ElementIndexRangeList.Add(new ElementIndexRange(zonecode, etype, max));
         }
-        
     }
-
-
 }

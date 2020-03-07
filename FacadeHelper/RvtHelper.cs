@@ -240,7 +240,9 @@ namespace FacadeHelper
             map.Insert(def, binding, group);
         }
 
-        public static void RawCreateProjectParameterFromNewSharedParameter(RvtApplication app, string defGroupName, string name, ParameterType type, bool visible, CategorySet cats, BuiltInParameterGroup paramGroup, bool inst)
+        public static void RawCreateProjectParameterFromNewSharedParameter(
+            RvtApplication app, string defGroupName, string name, ParameterType type,
+            bool visible, CategorySet cats, BuiltInParameterGroup paramGroup, bool inst)
         {
             DefinitionFile defFile = app.OpenSharedParameterFile();
             if (defFile == null)
@@ -273,7 +275,9 @@ namespace FacadeHelper
             map.Insert(def, binding, paramGroup);
         }
 
-        public static void RawCreateProjectParameter(RvtApplication app, string name, ParameterType type, bool visible, CategorySet cats, BuiltInParameterGroup group, bool inst)
+        public static void RawCreateProjectParameter(
+            RvtApplication app, string name, ParameterType type, bool visible,
+            CategorySet cats, BuiltInParameterGroup group, bool inst)
         {
             //InternalDefinition def = new InternalDefinition();
             //Definition def = new Definition();
@@ -345,7 +349,8 @@ namespace FacadeHelper
             it.Reset();
             while (it.MoveNext())
             {
-                ProjectParameterData newProjectParameterData = new ProjectParameterData() { Definition = it.Key, Binding = it.Current as ElementBinding };
+                ProjectParameterData newProjectParameterData =
+                    new ProjectParameterData() { Definition = it.Key, Binding = it.Current as ElementBinding };
                 result.Add(newProjectParameterData);
             }
 
@@ -479,7 +484,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "立面朝向", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "立面朝向", ParameterType.Text, true,
+                        _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
 
                 #endregion 设置项目参数：立面朝向
@@ -493,7 +500,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "立面系统", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "立面系统", ParameterType.Text, true,
+                        _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
 
                 #endregion 设置项目参数：立面系统
@@ -507,7 +516,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "立面楼层", ParameterType.Integer, true, _catset, BuiltInParameterGroup.PG_DATA, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "立面楼层", ParameterType.Integer, true,
+                        _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
 
                 #endregion 设置项目参数：立面楼层
@@ -521,7 +532,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "构件分项", ParameterType.Integer, true, _catset, BuiltInParameterGroup.PG_DATA, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "构件分项", ParameterType.Integer, true,
+                        _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
 
                 #endregion 设置项目参数：构件分项
@@ -535,7 +548,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "构件子项", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "构件子项", ParameterType.Text, true,
+                        _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
 
                 #endregion 设置项目参数：构件子项
@@ -548,7 +563,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "加工编号", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "加工编号", ParameterType.Text, true,
+                        _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
 
                 #endregion 设置项目参数：加工编号
@@ -561,7 +578,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "材料单号", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "材料单号", ParameterType.Text, true,
+                        _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
 
                 #endregion 设置项目参数：材料单号
@@ -575,7 +594,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "分区序号", ParameterType.Integer, true, _catset, BuiltInParameterGroup.PG_DATA, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "分区序号", ParameterType.Integer, true,
+                        _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
 
                 #endregion 设置项目参数：分区序号
@@ -589,7 +610,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "分区区号", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "分区区号", ParameterType.Text, true,
+                        _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
 
                 #endregion 设置项目参数：分区区号
@@ -603,7 +626,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "分区编码", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_DATA, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "分区编码", ParameterType.Text, true,
+                        _catset, BuiltInParameterGroup.PG_DATA, true);
                 }
 
                 #endregion 设置项目参数：分区编码
@@ -617,7 +642,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "进场时间", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_PHASING, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "进场时间", ParameterType.Text, true,
+                        _catset, BuiltInParameterGroup.PG_PHASING, true);
                 }
 
                 #endregion 设置项目参数：進場時間
@@ -631,7 +658,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "安装开始", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_PHASING, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "安装开始", ParameterType.Text, true,
+                        _catset, BuiltInParameterGroup.PG_PHASING, true);
                 }
 
                 #endregion 设置项目参数：安裝開始
@@ -645,7 +674,9 @@ namespace FacadeHelper
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_GenericModel));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_CurtainWallMullions));
                     _catset.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_Windows));
-                    ParameterHelper.RawCreateProjectParameter(doc.Application, "安装结束", ParameterType.Text, true, _catset, BuiltInParameterGroup.PG_PHASING, true);
+                    ParameterHelper.RawCreateProjectParameter(
+                        doc.Application, "安装结束", ParameterType.Text, true,
+                        _catset, BuiltInParameterGroup.PG_PHASING, true);
                 }
 
                 #endregion 设置项目参数：安裝結束
@@ -785,9 +816,11 @@ namespace FacadeHelper
                     string[] rowdata = dataline.Split('\t');
                     linehandleid = rowdata[0].Replace(@"'", ""); //AutoCAD Attribute Block Handle ID.
 
-                    if ((rowdata.Length > 5 && rowdata[2] == rowdata[5]) || (rowdata.Length > 8 && (rowdata[2] == rowdata[8] || rowdata[5] == rowdata[8])))
+                    if ((rowdata.Length > 5 && rowdata[2] == rowdata[5])
+                        || (rowdata.Length > 8 && (rowdata[2] == rowdata[8] || rowdata[5] == rowdata[8])))
                     {
-                        MessageBox.Show($"当前行[{rowdata[0]}]的分区编号有重复，不能继续读取分析数据。", "错误 - 分区进度数据");
+                        MessageBox.Show($"当前行[{rowdata[0]}]的分区编号有重复，不能继续读取分析数据。",
+                            "错误 - 分区进度数据");
                         return null;
                     }
 
@@ -797,10 +830,13 @@ namespace FacadeHelper
                         {
                             if (lv2 != 1)
                             {
-                                MessageBox.Show($"当前行[{rowdata[0]}]的分区[{rowdata[2]}]的工序层 0 数据位置/数据段 2 错误，不能继续读取。", "错误 - 分区进度数据");
+                                MessageBox.Show($"当前行[{rowdata[0]}]的分区[{rowdata[2]}]的工序层 0 数据位置/数据段 2 错误，" +
+                                                $"不能继续读取。",
+                                    "错误 - 分区进度数据");
                                 return null;
                             }
-                            linezonecode = Regex.Replace(rowdata[2], @"Z-\d{2}-", @"Z-00-", RegexOptions.IgnoreCase);
+                            linezonecode = Regex
+                                .Replace(rowdata[2], @"Z-\d{2}-", @"Z-00-", RegexOptions.IgnoreCase);
                             L0.HandleId = linehandleid;
                             L0.ZoneLayer = 0;
                             L0.ZoneCode = linezonecode;
@@ -815,12 +851,16 @@ namespace FacadeHelper
                         {
                             if (lv5 != 2)
                             {
-                                MessageBox.Show($"当前行[{rowdata[0]}]的分区[{rowdata[5]}]的工序层 1 数据位置/数据段 5 错误，不能继续读取。", "错误 - 分区进度数据");
+                                MessageBox.Show($"当前行[{rowdata[0]}]的分区[{rowdata[5]}]的工序层 1 数据位置/数据段 5 错误，" +
+                                                $"不能继续读取。", "错误 - 分区进度数据");
                                 return null;
                             }
-                            if (linezonecode != Regex.Replace(rowdata[5], @"Z-\d{2}-", @"Z-00-", RegexOptions.IgnoreCase))
+                            if (linezonecode != Regex.Replace(rowdata[5],
+                                    @"Z-\d{2}-", @"Z-00-", RegexOptions.IgnoreCase))
                             {
-                                MessageBox.Show($"当前行[{rowdata[0]}]的分区[{linezonecode}]编号不统一，不能继续读取分析数据。", "错误 - 分区进度数据");
+                                MessageBox
+                                    .Show($"当前行[{rowdata[0]}]的分区[{linezonecode}]编号不统一，不能继续读取分析数据。",
+                                        "错误 - 分区进度数据");
                                 return null;
                             }
                             L1.HandleId = linehandleid;
@@ -848,9 +888,12 @@ namespace FacadeHelper
                                 MessageBox.Show($"当前行[{rowdata[0]}]的分区[{rowdata[8]}]的工序层 2 数据位置/数据段 8 错误，不能继续读取。", "错误 - 分区进度数据");
                                 return null;
                             }
-                            if (linezonecode != Regex.Replace(rowdata[8], @"Z-\d{2}-", @"Z-00-", RegexOptions.IgnoreCase))
+                            if (linezonecode != Regex
+                                    .Replace(rowdata[8], @"Z-\d{2}-", @"Z-00-", RegexOptions.IgnoreCase))
                             {
-                                MessageBox.Show($"当前行[{rowdata[0]}]的分区编号[{linezonecode}]不统一，不能继续读取分析数据。", "错误 - 分区进度数据");
+                                MessageBox
+                                    .Show($"当前行[{rowdata[0]}]的分区编号[{linezonecode}]不统一，不能继续读取分析数据。",
+                                        "错误 - 分区进度数据");
                                 return null;
                             }
                             L2.HandleId = linehandleid;
@@ -876,7 +919,8 @@ namespace FacadeHelper
                 }
             }
 
-            var zfile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{Global.GetAppConfig("CurrentProjectID")}.zone.xml");
+            var zfile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                $"{Global.GetAppConfig("CurrentProjectID")}.zone.xml");
             if (File.Exists(zfile))
             {
                 File.Delete(zfile);
@@ -888,7 +932,8 @@ namespace FacadeHelper
 
         public static List<ZoneLayerInfo> FnZoneDataDeserialize()
         {
-            var zfile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{Global.GetAppConfig("CurrentProjectID")}.zone.xml");
+            var zfile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                $"{Global.GetAppConfig("CurrentProjectID")}.zone.xml");
             if (!File.Exists(zfile))
             {
                 return null;
@@ -969,7 +1014,8 @@ namespace FacadeHelper
                 Serializer.Serialize(fs, originaldata);
             }
 
-            listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - UPDATE: EXTDATA(SELF), {originaldata.ExternalFileName}.");
+            listinfo.SelectedIndex = listinfo.Items
+                .Add($"{DateTime.Now:HH:mm:ss} - UPDATE: EXTDATA(SELF), {originaldata.ExternalFileName}.");
         }
 
         #endregion 序列化外部链接项目的构件数据
@@ -990,12 +1036,14 @@ namespace FacadeHelper
 
             if (hasrangezone)
             {
-                relistzone.AddRange(Global.DocContent.FullZoneList.Where(z => Regex.IsMatch(z.ZoneCode, querystring, RegexOptions.IgnoreCase)));
+                relistzone.AddRange(Global.DocContent.FullZoneList
+                    .Where(z => Regex.IsMatch(z.ZoneCode, querystring, RegexOptions.IgnoreCase)));
             }
 
             if (hasrangepanel)
             {
-                relistpanel.AddRange(Global.DocContent.FullCurtainPanelList.Where(p => Regex.IsMatch($"{p.INF_ElementId} # {p.INF_Code}", querystring, RegexOptions.IgnoreCase)));
+                relistpanel.AddRange(Global.DocContent.FullCurtainPanelList
+                    .Where(p => Regex.IsMatch($"{p.INF_ElementId} # {p.INF_Code}", querystring, RegexOptions.IgnoreCase)));
             }
 
             if (hasrangeelement)
@@ -1017,7 +1065,9 @@ namespace FacadeHelper
         /// <param name="txt_curr_op">状态文字控件引用-当前操作</param>
         /// <param name="progbar_curr">当前状态进度条控件引用</param>
         /// <param name="listinfo">输出状态信息控件引用</param>
-        public static void FnResolveZone_MixSort(UIDocument uidoc, ZoneInfoBase zone, ref Label txt_curr_ele, ref Label txt_curr_op, ref ProgressBar progbar_curr, ref ListBox listinfo)
+        public static void FnResolveZone_MixSort(
+            UIDocument uidoc, ZoneInfoBase zone, ref Label txt_curr_ele,
+            ref Label txt_curr_op, ref ProgressBar progbar_curr, ref ListBox listinfo)
         {
             var doc = uidoc.Document;
             uidoc.Selection./*Elements*/GetElementIds().Clear();
@@ -1162,7 +1212,8 @@ namespace FacadeHelper
 
                 #endregion 明细构件 排序
 
-                listinfo.SelectedIndex = listinfo.Items.Add($"{DateTime.Now:HH:mm:ss} - CODE: Z/{zone.ZoneCode}@{layergroup.Key}, E/{_sesinzone[layergroup.Key].Count()}...");
+                listinfo.SelectedIndex = listinfo.Items
+                    .Add($"{DateTime.Now:HH:mm:ss} - CODE: Z/{zone.ZoneCode}@{layergroup.Key}, E/{_sesinzone[layergroup.Key].Count()}...");
 
                 #region 確定嵌板內明細構件數據
 
